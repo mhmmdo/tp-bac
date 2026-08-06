@@ -171,7 +171,7 @@ function setupSpreadsheet() {
     sheetPeserta.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#0f766e').setFontColor('#ffffff');
     
     var initPeserta = [
-      ['PST-001', 'Mesa', '081234567890', 'Peserta 1', 'Aktif', new Date()],
+      ['PST-001', 'Ridho', '081234567890', 'Peserta 1', 'Aktif', new Date()],
       ['PST-002', 'Budi', '081234567891', 'Peserta 2', 'Aktif', new Date()],
       ['PST-003', 'Ani', '081234567892', 'Peserta 3', 'Aktif', new Date()],
       ['PST-004', 'Joko', '081234567893', 'Peserta 4', 'Aktif', new Date()],
