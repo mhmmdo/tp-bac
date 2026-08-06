@@ -410,47 +410,7 @@
     </tr>
   </table>
 
-  <div class="summary-box">
-    <div class="summary-box-title">Ringkasan Keuangan (Hanya Pengajuan Disetujui)</div>
-    <table class="summary-grid">
-      <tr>
-        <td>Perjalanan Rumah ke Bandara</td>
-        <td>:</td>
-        <td>
-          <?= recap.toAirport ?> kali
-        </td>
-        <td>Total Seluruh Biaya</td>
-        <td>:</td>
-        <td class="summary-value">
-          <?= helper.formatRupiah(recap.totalCost) ?>
-        </td>
-      </tr>
-      <tr>
-        <td>Perjalanan Bandara ke Rumah</td>
-        <td>:</td>
-        <td>
-          <?= recap.fromAirport ?> kali
-        </td>
-        <td>Menggunakan Uang Pribadi</td>
-        <td>:</td>
-        <td>
-          <?= helper.formatRupiah(recap.personalPaid) ?>
-        </td>
-      </tr>
-      <tr>
-        <td>Total Pembayaran Sudah Diganti</td>
-        <td>:</td>
-        <td class="text-success" style="font-weight: bold;">
-          <?= helper.formatRupiah(recap.rereimbursed || recap.reimbursed) ?>
-        </td>
-        <td>Total Pembayaran Belum Diganti</td>
-        <td>:</td>
-        <td class="text-danger" style="font-weight: bold;">
-          <?= helper.formatRupiah(recap.unpaid) ?>
-        </td>
-      </tr>
-    </table>
-  </div>
+
 
   <div class="proof-title">Daftar Transaksi Perjalanan</div>
   <table class="content-table">
@@ -538,12 +498,7 @@
   <? } ?>
   <? } ?>
 
-  <div class="verification-footer">
-    Rekapitulasi ini sah dihasilkan secara elektronik oleh Sistem Pertanggungjawaban Transport.<br>
-    Kode Verifikasi Laporan: <strong>
-      <?= verificationCode ?>
-    </strong>
-  </div>
+
 
   <? } else if (mode === 'final_report') { ?>
   <!-- ================= MODE 3: LAPORAN PERTANGGUNGJAWABAN UTAMA (ADMIN) ================= -->
