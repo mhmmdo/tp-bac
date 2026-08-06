@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Laporan Transport</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #333333;
+      line-height: 1.4;
+      font-size: 11px;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .header-table {
+      width: 100%;
+      border-bottom: 2px solid #0f766e;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0f766e;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 10px;
+      color: #666666;
+      margin-top: 4px;
+    }
+
+    .meta-table {
+      width: 100%;
+      margin-bottom: 20px;
+      border-collapse: collapse;
+    }
+
+    .meta-table td {
+      padding: 4px 0;
+      vertical-align: top;
+    }
+
+    .meta-label {
+      font-weight: bold;
+      width: 150px;
+      color: #444444;
+    }
+
+    .meta-value {
+      color: #111111;
+    }
+
+    .content-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .content-table th {
+      background-color: #0f766e;
+      color: #ffffff;
+      font-weight: bold;
+      text-align: left;
+      padding: 7px 10px;
+      font-size: 10px;
+      border: 1px solid #0f766e;
+    }
+
+    .content-table td {
+      padding: 7px 10px;
+      border: 1px solid #dddddd;
+      vertical-align: top;
+    }
+
+    .content-table tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .summary-box {
+      background-color: #f0fdfa;
+      border: 1px solid #99f6e4;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+
+    .summary-box-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #0f766e;
+      margin-bottom: 8px;
+    }
+
+    .summary-grid {
+      width: 100%;
+    }
+
+    .summary-grid td {
+      padding: 4px 8px;
+    }
+
+    .summary-value {
+      font-size: 13px;
+      font-weight: bold;
+      color: #0f766e;
+    }
+
+    .proof-container {
+      margin-top: 20px;
+      page-break-inside: avoid;
+    }
+
+    .proof-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #0f766e;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    .proof-img {
+      max-width: 320px;
+      max-height: 240px;
+      border: 1px solid #dddddd;
+      padding: 4px;
+      background-color: #ffffff;
+      margin-top: 8px;
+    }
+
+    .signature-table {
+      width: 100%;
+      margin-top: 40px;
+      page-break-inside: avoid;
+    }
+
+    .signature-title {
+      font-size: 11px;
+      color: #666666;
+      margin-bottom: 50px;
+    }
+
+    .signature-name {
+      font-weight: bold;
+      text-decoration: underline;
+      color: #111111;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .badge-approved {
+      background-color: #dcfce7;
+      color: #16a34a;
+    }
+
+    .badge-pending {
+      background-color: #fef3c7;
+      color: #d97706;
+    }
+
+    .badge-rejected {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .verification-footer {
+      margin-top: 30px;
+      border-top: 1px dotted #cbd5e1;
+      padding-top: 8px;
+      color: #64748b;
+      font-size: 9px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <? if (mode === 'transaction') { ?>
+  <!-- ================= MODE 1: BUKTI TRANSAKSI TUNGGAL ================= -->
+  <table class="header-table">
+    <tr>
+      <td>
+        <div class="title">Bukti Pengeluaran Transport</div>
+        <div class="subtitle">
+          <?= settings.namaKegiatan ?>
+        </div>
+      </td>
+      <td class="text-right">
+        <div style="font-weight: bold; font-size: 12px; color: #666;">
+          <?= documentNo ?>
+        </div>
+        <div class="subtitle">Tanggal Cetak:
+          <?= todayStr ?>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="meta-table">
+    <tr>
+      <td class="meta-label">ID Transaksi</td>
+      <td>:</td>
+      <td class="meta-value"><strong>
+          <?= t.id ?>
+        </strong></td>
+    </tr>
+    <tr>
+      <td class="meta-label">Nama Peserta</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.namaPeserta ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Tanggal Perjalanan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= helper.formatTanggal(t.tanggalPerjalanan) ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Jenis Perjalanan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.jenisPerjalanan ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Rute Perjalanan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.lokasiAsal ?> &rarr;
+        <?= t.lokasiTujuan ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Jenis Transportasi</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.jenisTransportasi ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Nominal Pengeluaran</td>
+      <td>:</td>
+      <td class="meta-value"><strong>
+          <?= helper.formatRupiah(t.nominal) ?>
+        </strong></td>
+    </tr>
+    <tr>
+      <td class="meta-label">Dibayar Oleh</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.dibayarOleh ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Keterangan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.keterangan || '-' ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Status Verifikasi</td>
+      <td>:</td>
+      <td class="meta-value">
+        <? if (t.statusVerifikasi === 'Disetujui') { ?>
+        <span class="badge badge-approved">Disetujui</span>
+        <? } else if (t.statusVerifikasi === 'Ditolak') { ?>
+        <span class="badge badge-rejected">Ditolak (Alasan:
+          <?= t.alasanPenolakan ?>)
+        </span>
+        <? } else { ?>
+        <span class="badge badge-pending">Menunggu Verifikasi</span>
+        <? } ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Status Pembayaran</td>
+      <td>:</td>
+      <td class="meta-value">
+        <span
+          class="badge <?= t.statusPembayaran === 'Sudah Dibayar' ? 'badge-approved' : (t.statusPembayaran === 'Belum Dibayar' ? 'badge-pending' : '') ?>">
+          <?= t.statusPembayaran ?>
+        </span>
+      </td>
+    </tr>
+    <? if (t.statusPembayaran === 'Sudah Dibayar') { ?>
+    <tr>
+      <td class="meta-label">Tanggal Pembayaran</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= helper.formatTanggal(t.tanggalPembayaran) ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Metode Pembayaran</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= t.metodePembayaran ?>
+      </td>
+    </tr>
+    <? } ?>
+  </table>
+
+  <? if (t.linkBukti) { ?>
+  <div class="proof-container">
+    <div class="proof-title">Lampiran Bukti Pengeluaran</div>
+    <div>
+      <!-- Embed image if it is an image -->
+      <img class="proof-img" src="<?= helper.getDirectViewUrl(t.linkBukti) ?>" alt="Bukti Transport">
+      <div style="margin-top: 4px;"><a href="<?= t.linkBukti ?>" target="_blank">Buka Tautan Asli Bukti</a></div>
+    </div>
+  </div>
+  <? } ?>
+
+  <? if (t.statusPembayaran === 'Sudah Dibayar' && t.linkBuktiPembayaran) { ?>
+  <div class="proof-container">
+    <div class="proof-title">Lampiran Bukti Pembayaran (Reimbursement)</div>
+    <div>
+      <img class="proof-img" src="<?= helper.getDirectViewUrl(t.linkBuktiPembayaran) ?>" alt="Bukti Pembayaran">
+      <div style="margin-top: 4px;"><a href="<?= t.linkBuktiPembayaran ?>" target="_blank">Buka Tautan Asli
+          Pembayaran</a></div>
+    </div>
+  </div>
+  <? } ?>
+
+  <div class="verification-footer">
+    Dokumen ini sah dihasilkan secara elektronik oleh Sistem Pertanggungjawaban Transport.<br>
+    Kode Verifikasi Dokumen: <strong>
+      <?= verificationCode ?>
+    </strong>
+  </div>
+
+  <? } else if (mode === 'participant_recap') { ?>
+  <!-- ================= MODE 2: REKAPITULASI PER PESERTA ================= -->
+  <table class="header-table">
+    <tr>
+      <td>
+        <div class="title">Rekapitulasi Transport Peserta</div>
+        <div class="subtitle">
+          <?= settings.namaKegiatan ?>
+        </div>
+      </td>
+      <td class="text-right">
+        <div style="font-weight: bold; font-size: 12px; color: #666;">
+          <?= participant.id ?>
+        </div>
+        <div class="subtitle">Tanggal Cetak:
+          <?= todayStr ?>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="meta-table">
+    <tr>
+      <td class="meta-label">Nama Peserta</td>
+      <td>:</td>
+      <td class="meta-value"><strong>
+          <?= participant.nama ?>
+        </strong></td>
+    </tr>
+    <tr>
+      <td class="meta-label">Nomor HP</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= participant.nohp ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Periode Kegiatan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= settings.tanggalKegiatan ?>
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Jumlah Transaksi Diajukan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= recap.transactionCount ?> kali
+      </td>
+    </tr>
+  </table>
+
+  <div class="summary-box">
+    <div class="summary-box-title">Ringkasan Keuangan (Hanya Pengajuan Disetujui)</div>
+    <table class="summary-grid">
+      <tr>
+        <td>Perjalanan Rumah ke Bandara</td>
+        <td>:</td>
+        <td>
+          <?= recap.toAirport ?> kali
+        </td>
+        <td>Total Seluruh Biaya</td>
+        <td>:</td>
+        <td class="summary-value">
+          <?= helper.formatRupiah(recap.totalCost) ?>
+        </td>
+      </tr>
+      <tr>
+        <td>Perjalanan Bandara ke Rumah</td>
+        <td>:</td>
+        <td>
+          <?= recap.fromAirport ?> kali
+        </td>
+        <td>Menggunakan Uang Pribadi</td>
+        <td>:</td>
+        <td>
+          <?= helper.formatRupiah(recap.personalPaid) ?>
+        </td>
+      </tr>
+      <tr>
+        <td>Total Pembayaran Sudah Diganti</td>
+        <td>:</td>
+        <td class="text-success" style="font-weight: bold;">
+          <?= helper.formatRupiah(recap.rereimbursed || recap.reimbursed) ?>
+        </td>
+        <td>Total Pembayaran Belum Diganti</td>
+        <td>:</td>
+        <td class="text-danger" style="font-weight: bold;">
+          <?= helper.formatRupiah(recap.unpaid) ?>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="proof-title">Daftar Transaksi Perjalanan</div>
+  <table class="content-table">
+    <thead>
+      <tr>
+        <th style="width: 80px;">ID Transaksi</th>
+        <th style="width: 70px;">Tanggal</th>
+        <th>Perjalanan</th>
+        <th style="width: 70px;">Transportasi</th>
+        <th style="width: 90px; text-align: right;">Nominal</th>
+        <th style="width: 70px; text-align: center;">Verifikasi</th>
+        <th style="width: 75px; text-align: center;">Pembayaran</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? if (expenses.length === 0) { ?>
+      <tr>
+        <td colspan="7" class="text-center">Belum ada pengeluaran transport yang tercatat.</td>
+      </tr>
+      <? } else { ?>
+      <? for (var i = 0; i < expenses.length; i++) { ?>
+      <? var e = expenses[i]; ?>
+      <tr>
+        <td>
+          <?= e.id ?>
+        </td>
+        <td>
+          <?= helper.formatTanggal(e.tanggalPerjalanan) ?>
+        </td>
+        <td>
+          <strong>
+            <?= e.jenisPerjalanan ?>
+          </strong><br>
+          <span style="font-size: 9px; color: #666;">
+            <?= e.lokasiAsal ?> &rarr;
+            <?= e.lokasiTujuan ?>
+          </span>
+        </td>
+        <td>
+          <?= e.jenisTransportasi ?>
+        </td>
+        <td class="text-right">
+          <?= helper.formatRupiah(e.nominal) ?>
+        </td>
+        <td class="text-center">
+          <? if (e.statusVerifikasi === 'Disetujui') { ?>
+          <span style="color: green; font-weight: bold;">Setuju</span>
+          <? } else if (e.statusVerifikasi === 'Ditolak') { ?>
+          <span style="color: red; font-weight: bold;">Ditolak</span>
+          <? } else { ?>
+          <span style="color: orange; font-weight: bold;">Menunggu</span>
+          <? } ?>
+        </td>
+        <td class="text-center" style="font-size: 9px;">
+          <?= e.statusPembayaran ?>
+        </td>
+      </tr>
+      <? } ?>
+      <? } ?>
+    </tbody>
+  </table>
+
+  <!-- Lampiran Bukti-Bukti di Halaman Baru -->
+  <? var hasImages = expenses.some(function(exp) { return exp.linkBukti; }); ?>
+  <? if (hasImages) { ?>
+  <div class="page-break"></div>
+  <div class="title" style="margin-bottom: 20px;">Lampiran Bukti Transaksi -
+    <?= participant.nama ?>
+  </div>
+  <? for (var i = 0; i < expenses.length; i++) { ?>
+  <? var e = expenses[i]; ?>
+  <? if (e.linkBukti) { ?>
+  <div class="proof-container"
+    style="border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+    <div style="font-weight: bold; font-size: 10px; color: #444;">
+      Transaksi:
+      <?= e.id ?> |
+      <?= helper.formatTanggal(e.tanggalPerjalanan) ?> |
+      <?= e.jenisPerjalanan ?> (
+      <?= helper.formatRupiah(e.nominal) ?>)
+    </div>
+    <img class="proof-img" src="<?= helper.getDirectViewUrl(e.linkBukti) ?>" alt="Bukti <?= e.id ?>">
+  </div>
+  <? } ?>
+  <? } ?>
+  <? } ?>
+
+  <div class="verification-footer">
+    Rekapitulasi ini sah dihasilkan secara elektronik oleh Sistem Pertanggungjawaban Transport.<br>
+    Kode Verifikasi Laporan: <strong>
+      <?= verificationCode ?>
+    </strong>
+  </div>
+
+  <? } else if (mode === 'final_report') { ?>
+  <!-- ================= MODE 3: LAPORAN PERTANGGUNGJAWABAN UTAMA (ADMIN) ================= -->
+  <table class="header-table">
+    <tr>
+      <td>
+        <div class="title">Laporan Pertanggungjawaban Transportasi</div>
+        <div style="font-size: 13px; font-weight: bold; color: #444; margin-top: 4px;">
+          <?= settings.namaKegiatan ?>
+        </div>
+      </td>
+      <td class="text-right">
+        <div style="font-weight: bold; font-size: 12px; color: #666;">
+          <?= reportNo ?>
+        </div>
+        <div class="subtitle">Tanggal Pembuatan:
+          <?= todayStr ?>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="meta-table">
+    <tr>
+      <td class="meta-label">Periode Kegiatan</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= settings.tanggalKegiatan ?>
+      </td>
+      <td class="meta-label">Jumlah Peserta</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= dashboard.jumlahPeserta ?> orang
+      </td>
+    </tr>
+    <tr>
+      <td class="meta-label">Penanggung Jawab</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= settings.penanggungJawab ?>
+      </td>
+      <td class="meta-label">Mengetahui</td>
+      <td>:</td>
+      <td class="meta-value">
+        <?= settings.mengetahui ?>
+      </td>
+    </tr>
+  </table>
+
+  <div class="summary-box">
+    <div class="summary-box-title">Ringkasan Keuangan Kegiatan</div>
+    <table class="summary-grid">
+      <tr>
+        <td>Uang Muka (DP Awal)</td>
+        <td>:</td>
+        <td><strong>
+            <?= helper.formatRupiah(dashboard.dpAwal) ?>
+          </strong></td>
+        <td>Total Pengeluaran Disetujui</td>
+        <td>:</td>
+        <td class="summary-value" style="color: #444;">
+          <?= helper.formatRupiah(dashboard.totalDisetujui) ?>
+        </td>
+      </tr>
+      <tr>
+        <td>Total Dana Tambahan</td>
+        <td>:</td>
+        <td><strong>
+            <?= helper.formatRupiah(dashboard.totalTambahan) ?>
+          </strong></td>
+        <td>Reimbursement Belum Dibayar</td>
+        <td>:</td>
+        <td class="text-danger" style="font-weight: bold;">
+          <?= helper.formatRupiah(dashboard.totalBelumBayar) ?>
+        </td>
+      </tr>
+      <tr>
+        <td>Total Seluruh Dana Masuk</td>
+        <td>:</td>
+        <td style="color: var(--primary); font-weight: bold;">
+          <?= helper.formatRupiah(dashboard.totalDanaMasuk) ?>
+        </td>
+        <td>Reimbursement Sudah Dibayar</td>
+        <td>:</td>
+        <td class="text-success" style="font-weight: bold;">
+          <?= helper.formatRupiah(dashboard.totalSudahBayar) ?>
+        </td>
+      </tr>
+      <tr style="border-top: 1px solid #cbd5e1;">
+        <td colspan="3" style="padding-top: 8px;">
+          <? if (dashboard.saldoDana >= 0 && dashboard.kekuranganDana <= 0) { ?>
+          <span style="color: #0f766e; font-weight: bold;">SISA SALDO DANA TRANSPORT:</span>
+          <? } else { ?>
+          <span style="color: #dc2626; font-weight: bold;">KEKURANGAN DANA TRANSPORT:</span>
+          <? } ?>
+        </td>
+        <td colspan="3" style="padding-top: 8px;">
+          <? if (dashboard.saldoDana >= 0 && dashboard.kekuranganDana <= 0) { ?>
+          <span class="summary-value" style="font-size: 14px;">
+            <?= helper.formatRupiah(dashboard.saldoDana) ?>
+          </span>
+          <? } else { ?>
+          <span class="summary-value" style="font-size: 14px; color: #dc2626;">
+            <?= helper.formatRupiah(dashboard.kekuranganDana) ?>
+          </span>
+          <? } ?>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- TAMPILAN NOTIFIKASI KEKURANGAN/SISA DANA -->
+  <div
+    style="margin-bottom: 20px; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 12px;
+      <?= (dashboard.totalDisetujui > dashboard.totalDanaMasuk) ? 'background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;' : 'background-color: #e6fffa; color: #0f766e; border: 1px solid #a7f3d0;' ?>">
+    <? if (dashboard.totalDisetujui > dashboard.totalDanaMasuk) { ?>
+    Dana transport kurang sebesar
+    <?= helper.formatRupiah(dashboard.totalDisetujui - dashboard.totalDanaMasuk) ?>
+    <? } else { ?>
+    Sisa dana transport sebesar
+    <?= helper.formatRupiah(dashboard.totalDanaMasuk - dashboard.totalDisetujui) ?>
+    <? } ?>
+  </div>
+
+  <!-- DANA MASUK TABLE -->
+  <div class="proof-title">Daftar Transaksi Dana Masuk</div>
+  <table class="content-table">
+    <thead>
+      <tr>
+        <th style="width: 120px;">ID Transaksi</th>
+        <th style="width: 80px;">Tanggal</th>
+        <th style="width: 110px;">Jenis Dana</th>
+        <th style="width: 120px; text-align: right;">Nominal</th>
+        <th>Keterangan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? if (funds.length === 0) { ?>
+      <tr>
+        <td colspan="5" class="text-center">Belum ada dana masuk tercatat.</td>
+      </tr>
+      <? } else { ?>
+      <? for (var i = 0; i < funds.length; i++) { ?>
+      <tr>
+        <td>
+          <?= funds[i].id ?>
+        </td>
+        <td>
+          <?= helper.formatTanggal(funds[i].tanggal) ?>
+        </td>
+        <td>
+          <?= funds[i].jenisDana ?>
+        </td>
+        <td class="text-right">
+          <?= helper.formatRupiah(funds[i].nominal) ?>
+        </td>
+        <td>
+          <?= funds[i].keterangan || '-' ?>
+        </td>
+      </tr>
+      <? } ?>
+      <? } ?>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- REKAP PER PESERTA TABLE -->
+  <div class="proof-title">Rekapitulasi Biaya per Peserta (Disetujui)</div>
+  <table class="content-table">
+    <thead>
+      <tr>
+        <th>Nama Peserta</th>
+        <th style="width: 70px; text-align: center;">Rumah-Bandara</th>
+        <th style="width: 70px; text-align: center;">Bandara-Rumah</th>
+        <th style="width: 100px; text-align: right;">Total Biaya</th>
+        <th style="width: 100px; text-align: right;">Uang Pribadi</th>
+        <th style="width: 100px; text-align: right;">Sudah Diganti</th>
+        <th style="width: 100px; text-align: right;">Belum Diganti</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? for (var i = 0; i < recaps.length; i++) { ?>
+      <tr>
+        <td><strong>
+            <?= recaps[i].nama ?>
+          </strong></td>
+        <td class="text-center">
+          <?= recaps[i].toAirport ?> kali
+        </td>
+        <td class="text-center">
+          <?= recaps[i].fromAirport ?> kali
+        </td>
+        <td class="text-right">
+          <?= helper.formatRupiah(recaps[i].totalCost) ?>
+        </td>
+        <td class="text-right">
+          <?= helper.formatRupiah(recaps[i].personalPaid) ?>
+        </td>
+        <td class="text-right" style="color: green;">
+          <?= helper.formatRupiah(recaps[i].reimbursed) ?>
+        </td>
+        <td class="text-right" style="color: red;">
+          <?= helper.formatRupiah(recaps[i].unpaid) ?>
+        </td>
+      </tr>
+      <? } ?>
+    </tbody>
+  </table>
+
+  <!-- TRANSAKSI RINCI TABLE -->
+  <div class="proof-title" style="margin-top: 30px;">Rincian Transaksi Transportasi (Disetujui)</div>
+  <table class="content-table">
+    <thead>
+      <tr>
+        <th style="width: 90px;">ID Transaksi</th>
+        <th>Nama & Perjalanan</th>
+        <th style="width: 80px;">Rute & Transport</th>
+        <th style="width: 85px; text-align: right;">Nominal</th>
+        <th style="width: 85px;">Pembayaran</th>
+        <th style="width: 60px; text-align: center;">Bukti</th>
+      </tr>
+    </thead>
+    <tbody>
+      <? if (expenses.length === 0) { ?>
+      <tr>
+        <td colspan="6" class="text-center">Belum ada pengeluaran disetujui.</td>
+      </tr>
+      <? } else { ?>
+      <? for (var i = 0; i < expenses.length; i++) { ?>
+      <? var e = expenses[i]; ?>
+      <tr>
+        <td>
+          <?= e.id ?>
+        </td>
+        <td>
+          <strong>
+            <?= e.namaPeserta ?>
+          </strong><br>
+          <span style="font-size: 9px; color: #666;">
+            <?= helper.formatTanggal(e.tanggalPerjalanan) ?> &middot;
+            <?= e.jenisPerjalanan ?>
+          </span>
+        </td>
+        <td>
+          <?= e.jenisTransportasi ?><br>
+          <span style="font-size: 8px; color: #666;">
+            <?= e.lokasiAsal ?> &rarr;
+            <?= e.lokasiTujuan ?>
+          </span>
+        </td>
+        <td class="text-right">
+          <?= helper.formatRupiah(e.nominal) ?>
+        </td>
+        <td>
+          <span style="font-size: 9px; font-weight: bold;">
+            <?= e.statusPembayaran ?>
+          </span>
+          <? if (e.statusPembayaran === 'Sudah Dibayar') { ?>
+          <br><span style="font-size: 8px; color: #666;">
+            <?= e.metodePembayaran ?>
+          </span>
+          <? } ?>
+        </td>
+        <td class="text-center">
+          <? if (e.linkBukti) { ?>
+          <a href="<?= e.linkBukti ?>" target="_blank" style="font-size: 9px;">Buka</a>
+          <? } else { ?>
+          -
+          <? } ?>
+        </td>
+      </tr>
+      <? } ?>
+      <? } ?>
+    </tbody>
+  </table>
+
+  <!-- SIGNATURES -->
+  <table class="signature-table">
+    <tr>
+      <td style="width: 50%; text-align: center;">
+        <div class="signature-title">Disusun Oleh,</div>
+        <div style="height: 60px;"></div>
+        <div class="signature-name">
+          <?= settings.penanggungJawab ?>
+        </div>
+        <div style="font-size: 9px; color: #666; margin-top: 4px;">Penanggung Jawab Transport</div>
+      </td>
+      <td style="width: 50%; text-align: center;">
+        <div class="signature-title">Mengetahui & Menyetujui,</div>
+        <div style="height: 60px;"></div>
+        <div class="signature-name">
+          <?= settings.mengetahui ?>
+        </div>
+        <div style="font-size: 9px; color: #666; margin-top: 4px;">Bendahara / Pihak Berwenang</div>
+      </td>
+    </tr>
+  </table>
+
+  <? } ?>
+
+</body>
+
+</html>

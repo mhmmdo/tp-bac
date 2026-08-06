@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <title>Pertanggungjawaban Dana Transportasi</title>
+  <!-- Link CSS Statis -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Global Loader (Premium Spinner) -->
+  <div id="global-loader" class="loader-overlay">
+    <div class="spinner"></div>
+    <div>Memproses data...</div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ========================================================================= -->
+  <!-- 0. API CONFIGURATION SCREEN (Jika API URL belum di-set) -->
+  <!-- ========================================================================= -->
+  <div id="api-config-screen" class="portal-login-container hidden">
+    <div class="text-center" style="margin-bottom:30px;">
+      <div class="portal-logo" style="background:#fee2e2; color:#dc2626;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h2 class="portal-title" style="color:#dc2626;">Konfigurasi API</h2>
+      <p class="portal-subtitle">Aplikasi memerlukan URL API Google Apps Script untuk berjalan.</p>
+    </div>
+
+    <div class="card card-p20">
+      <div class="form-group">
+        <label for="config-api-url">Google Apps Script Web App URL *</label>
+        <input type="text" id="config-api-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+        <span class="card-desc-small" style="margin-top:6px; display:block;">Masukkan URL penerapan aplikasi web yang Anda peroleh saat melakukan deploy Google Apps Script.</span>
+      </div>
+      
+      <button class="btn btn-danger btn-block" id="btn-save-api-config">
+        Simpan & Hubungkan API
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 1. PORTAL LOGIN SCREEN -->
+  <!-- ========================================================================= -->
+  <div id="portal-login-screen" class="portal-login-container">
+    <div class="text-center" style="margin-bottom:30px;">
+      <div class="portal-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <h2 class="portal-title">Portal Transportasi</h2>
+      <p class="portal-subtitle">Pencatatan & pertanggungjawaban dana transport 6 orang</p>
+    </div>
+
+    <div class="card card-p20">
+      <div class="form-group">
+        <label for="portal-peserta-select">Nama Peserta</label>
+        <select id="portal-peserta-select" class="form-control bg-white">
+          <!-- Diisi otomatis melalui JS -->
+        </select>
+      </div>
+      
+      <button class="btn btn-primary btn-block mt-10" id="portal-login-btn">
+        Masuk ke Portal Saya
+      </button>
+    </div>
+
+    <div class="text-center mt-16">
+      <span class="text-btn-secondary" id="btn-enter-admin">
+        Masuk sebagai Administrator
+      </span>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. ADMIN APP LAYOUT -->
+  <!-- ========================================================================= -->
+  <div id="admin-app-layout" class="hidden">
+    <!-- Desktop Sidebar Navigation -->
+    <aside class="desktop-sidebar">
+      <div class="sidebar-brand">Transport Admin</div>
+      <ul class="sidebar-menu">
+        <li><a class="sidebar-link active" data-view="dashboard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a></li>
+        <li><a class="sidebar-link" data-view="expenses"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Pengeluaran</a></li>
+        <li><a class="sidebar-link" data-view="add"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Tambah Transaksi</a></li>
+        <li><a class="sidebar-link" data-view="recap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Rekapitulasi</a></li>
+        <li><a class="sidebar-link" data-view="more"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>Lainnya</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary btn-block btn-sidebar" id="sidebar-logout-btn">Keluar ke Portal</button>
+      </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="app-header">
+      <div class="app-title-group">
+        <h1 class="app-activity-name">Perjalanan Transportasi Bandara</h1>
+        <p>Mode: Administrator</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-xs" id="header-portal-btn">Portal Peserta</button>
+      </div>
+    </header>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a class="nav-item active" data-view="dashboard">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Beranda
+      </a>
+      <a class="nav-item" data-view="expenses">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Transaksi
+      </a>
+      <a class="nav-item nav-item-center" data-view="add">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </a>
+      <a class="nav-item" data-view="recap">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        Rekap
+      </a>
+      <a class="nav-item" data-view="more">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        Lainnya
+      </a>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTAINER - VIEW VIEWS (SPA) -->
+    <!-- ========================================================================= -->
+    <main class="container">
+
+      <!-- VIEW: DASHBOARD (ADMIN) -->
+      <section id="view-dashboard" class="app-view active">
+        <!-- Main Balance Card -->
+        <div class="card balance-card">
+          <div id="dash-main-card-loader" class="p20-y">
+            <div class="skeleton-text skeleton-text-w40"></div>
+            <div class="skeleton-text skeleton-text-w70-h26"></div>
+          </div>
+          <div id="dash-main-card-content" class="hidden">
+            <span class="label" id="dash-balance-type">Saldo Dana Transport</span>
+            <div class="value" id="dash-balance-val">Rp0</div>
+            
+            <div class="footer-info">
+              <div>
+                <span>Dana Masuk (DP+Tambahan)</span>
+                <strong id="dash-total-masuk">Rp0</strong>
+              </div>
+              <div class="text-right">
+                <span>Total Pengeluaran Disetujui</span>
+                <strong id="dash-total-keluar">Rp0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deficit/Surplus Notification Banner -->
+        <div id="dash-status-banner" class="status-banner surplus mb-16">
+          <!-- Diisi via JS -->
+        </div>
+
+        <!-- Quick Summary Cards -->
+        <div class="summary-grid" id="dash-quick-grid">
+          <div class="summary-item">
+            <span class="label">Pengajuan Menunggu</span>
+            <span class="value text-warning" id="dash-stat-pending">0</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Sudah Disetujui</span>
+            <span class="value text-primary" id="dash-stat-approved">Rp0</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Belum Dibayarkan</span>
+            <span class="value text-danger" id="dash-stat-unpaid">Rp0</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Jumlah Peserta</span>
+            <span class="value" id="dash-stat-peserta">6</span>
+          </div>
+        </div>
+
+        <!-- Recent Activities Header -->
+        <div class="section-header">
+          <h2>Aktivitas Terbaru</h2>
+          <span id="view-all-expenses">Lihat Semua</span>
+        </div>
+
+        <!-- Recent Activities List -->
+        <div class="activity-list" id="dash-activities-list">
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
+      </section>
+
+      <!-- VIEW: DAFTAR TRANSAKSI (ADMIN) -->
+      <section id="view-expenses" class="app-view">
+        <div class="search-bar-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-expense" class="form-control" placeholder="Cari nama peserta...">
+        </div>
+
+        <div class="flex justify-between align-center" style="margin-bottom:12px;">
+          <!-- Filter Chips -->
+          <div class="filter-chips chips-flex">
+            <div id="chip-all" class="filter-chip active">Semua</div>
+            <div id="chip-pending" class="filter-chip">Menunggu</div>
+            <div id="chip-unpaid" class="filter-chip">Belum Dibayar</div>
+          </div>
+          
+          <button class="btn btn-secondary btn-filter" id="open-filter-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2"><polyline points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Filter
+          </button>
+        </div>
+
+        <div class="activity-list" id="expenses-list-container">
+          <!-- Diisi via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW: FORM TAMBAH PENGELUARAN -->
+      <section id="view-add" class="app-view">
+        <div class="card">
+          <h2 class="card-title-bordered">Catat Pengeluaran Transport</h2>
+          
+          <form id="form-add-expense">
+            <!-- Rincian Peserta -->
+            <div class="form-group">
+              <label for="exp-peserta">Peserta *</label>
+              <select id="exp-peserta" class="form-control">
+                <!-- Dropdown otomatis -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="exp-tanggal">Tanggal Perjalanan *</label>
+              <input type="date" id="exp-tanggal" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="exp-jenis-perjalanan">Jenis Perjalanan *</label>
+              <select id="exp-jenis-perjalanan" class="form-control">
+                <option value="Rumah ke Bandara">Rumah ke Bandara</option>
+                <option value="Bandara ke Rumah">Bandara ke Rumah</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="exp-asal">Lokasi Asal *</label>
+              <input type="text" id="exp-asal" class="form-control" placeholder="Contoh: Rumah Mesa (Sidoarjo)">
+            </div>
+
+            <div class="form-group">
+              <label for="exp-tujuan">Lokasi Tujuan *</label>
+              <input type="text" id="exp-tujuan" class="form-control" placeholder="Contoh: Terminal 1 Juanda">
+            </div>
+
+            <div class="form-group">
+              <label for="exp-transport">Jenis Transportasi *</label>
+              <select id="exp-transport" class="form-control">
+                <option value="Grab">Grab</option>
+                <option value="Gojek">Gojek</option>
+                <option value="Taksi">Taksi</option>
+                <option value="Bensin">Bensin</option>
+                <option value="Tol">Tol</option>
+                <option value="Parkir">Parkir</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+
+            <!-- Nominal & Penanggung Jawab Dana -->
+            <div class="form-group">
+              <label for="exp-nominal">Nominal Pengeluaran (Rp) *</label>
+              <div class="input-group">
+                <span class="input-group-prefix">Rp</span>
+                <input type="text" id="exp-nominal" class="form-control input-rupiah" placeholder="0">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="exp-dibayar-oleh">Metode Pembayaran (Dibayar Menggunakan Uang Siapa) *</label>
+              <select id="exp-dibayar-oleh" class="form-control">
+                <option value="Uang Pribadi Peserta">Uang Pribadi Peserta (Reimbursement)</option>
+                <option value="Dana Transport">Dana Transport (Langsung dari Kas DP)</option>
+              </select>
+            </div>
+
+            <!-- Upload Foto Bukti -->
+            <div class="form-group">
+              <label>Unggah Foto Bukti Transaksi *</label>
+              <div class="file-upload-container">
+                <div class="file-upload-options">
+                  <label class="btn-upload">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Ambil Foto
+                    <input type="file" id="exp-camera" accept="image/*" capture="environment" class="hidden">
+                  </label>
+                  
+                  <label class="btn-upload">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Pilih dari Galeri
+                    <input type="file" id="exp-gallery" accept="image/jpeg,image/png,application/pdf" class="hidden">
+                  </label>
+                </div>
+                
+                <div id="exp-preview" class="file-preview hidden"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="exp-keterangan">Keterangan Tambahan</label>
+              <textarea id="exp-keterangan" class="form-control" rows="3" placeholder="Contoh: Tol gate Kejapanan PP"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block mt-10">Simpan Transaksi</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- VIEW: REKAPITULASI DANA & PESERTA (ADMIN) -->
+      <section id="view-recap" class="app-view">
+        <div id="recap-summary-container">
+          <!-- Diisi via JS -->
+        </div>
+
+        <div class="section-header">
+          <h2>Rekapitulasi per Peserta</h2>
+        </div>
+        
+        <div id="recap-participants-container">
+          <!-- Diisi via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW: MORE MENU LIST (ADMIN) -->
+      <section id="view-more" class="app-view">
+        <div class="card card-menu">
+          <div class="card-menu-header">
+            <strong class="text-bold">Navigasi Tambahan</strong>
+          </div>
+          
+          <div class="flex-col">
+            <div class="menu-item-link" id="menu-admin-participants">
+              <span class="menu-item-text">1. Kelola Data Peserta</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            
+            <div class="menu-item-link" id="menu-funds">
+              <span class="menu-item-text">2. Kelola Dana Masuk & Tambahan</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+
+            <div class="menu-item-link" id="menu-verify-pdf">
+              <span class="menu-item-text">3. Verifikasi Keabsahan PDF Dokumen</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+
+            <div class="menu-item-link" id="menu-settings">
+              <span class="menu-item-text">4. Pengaturan Aplikasi</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-p16-mt16">
+          <h3 class="card-title-small">Pertanggungjawaban Akhir</h3>
+          <p class="card-desc-small">Generate dokumen laporan PDF utama yang merangkum seluruh dana masuk, pengeluaran disetujui, rekap peserta, dan rincian transaksi.</p>
+          
+          <button class="btn btn-primary btn-block" id="btn-generate-report">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Buat Laporan PDF Pertanggungjawaban
+          </button>
+          
+          <div id="report-pdf-link-container"></div>
+        </div>
+      </section>
+
+      <!-- VIEW: DATA PESERTA (ADMIN) -->
+      <section id="view-admin-participants" class="app-view">
+        <div class="section-header">
+          <h2>Data Peserta Transport</h2>
+          <span id="btn-add-participant">+ Tambah Peserta</span>
+        </div>
+        <div id="part-list-container">
+          <!-- Diisi via JS -->
+        </div>
+        <button class="btn btn-secondary btn-block mt-8" id="btn-back-participants">Kembali ke Lainnya</button>
+      </section>
+
+      <!-- VIEW: DANA MASUK (ADMIN) -->
+      <section id="view-funds" class="app-view">
+        <div class="section-header">
+          <h2>Dana Masuk & Tambahan</h2>
+          <span id="btn-add-fund-nav">+ Catat Dana</span>
+        </div>
+        <div id="funds-list-container">
+          <!-- Diisi via JS -->
+        </div>
+        <button class="btn btn-secondary btn-block mt-8" id="btn-back-funds">Kembali ke Lainnya</button>
+      </section>
+
+      <!-- VIEW: FORM CATAT DANA MASUK (ADMIN) -->
+      <section id="view-add-fund" class="app-view">
+        <div class="card">
+          <h2 class="card-title-medium">Catat Penerimaan Dana Baru</h2>
+          <form id="form-add-fund">
+            <div class="form-group">
+              <label for="fund-tanggal">Tanggal Penerimaan *</label>
+              <input type="date" id="fund-tanggal" class="form-control">
+            </div>
+            
+            <div class="form-group">
+              <label for="fund-jenis">Jenis Penerimaan Dana *</label>
+              <select id="fund-jenis" class="form-control">
+                <option value="Dana Tambahan">Dana Tambahan</option>
+                <option value="Penyesuaian">Penyesuaian (Bisa bernilai negatif/pengurangan)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="fund-nominal">Nominal Dana (Rp) *</label>
+              <div class="input-group">
+                <span class="input-group-prefix">Rp</span>
+                <input type="text" id="fund-nominal" class="form-control input-rupiah" placeholder="0">
+              </div>
+            </div>
+
+            <!-- Upload Transfer -->
+            <div class="form-group">
+              <label>Unggah Bukti Transfer / Mutasi (Optional)</label>
+              <label class="btn-upload">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Unggah Berkas Bukti
+                <input type="file" id="fund-bukti" accept="image/*,application/pdf" class="hidden">
+              </label>
+              <div id="fund-preview" class="file-preview hidden"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="fund-keterangan">Keterangan / Sumber Dana</label>
+              <textarea id="fund-keterangan" class="form-control" rows="2" placeholder="Contoh: Dana tambahan dari bendahara operasional"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Simpan Transaksi Dana</button>
+            <button type="button" class="btn btn-secondary btn-block mt-8" id="btn-back-funds-2">Kembali</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- VIEW: SETTINGS (ADMIN) -->
+      <section id="view-settings" class="app-view">
+        <div class="card">
+          <h2 class="card-title-medium">Pengaturan Aplikasi</h2>
+          <form id="form-settings">
+            <!-- New API Web App URL input -->
+            <div class="form-group">
+              <label for="set-api-url">Apps Script API Web App URL *</label>
+              <input type="text" id="set-api-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+
+            <div class="form-group">
+              <label for="set-nama-kegiatan">Nama Kegiatan *</label>
+              <input type="text" id="set-nama-kegiatan" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="set-penanggung-jawab">Nama Penanggung Jawab *</label>
+              <input type="text" id="set-penanggung-jawab" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="set-mengetahui">Nama Pihak Yang Mengetahui *</label>
+              <input type="text" id="set-mengetahui" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="set-tanggal-kegiatan">Tanggal Kegiatan *</label>
+              <input type="text" id="set-tanggal-kegiatan" class="form-control" placeholder="Contoh: 6 s/d 10 Agustus 2026">
+            </div>
+            <div class="form-group">
+              <label for="set-dp-awal">Nominal DP Awal (Rp) *</label>
+              <div class="input-group">
+                <span class="input-group-prefix">Rp</span>
+                <input type="text" id="set-dp-awal" class="form-control input-rupiah">
+              </div>
+            </div>
+
+            <div class="settings-section-divider">
+              <strong class="text-bold">Konfigurasi Google Workspace ID (Disimpan di Server)</strong>
+            </div>
+
+            <div class="form-group">
+              <label for="set-sheet-id">Google Spreadsheet ID</label>
+              <input type="text" id="set-sheet-id" class="form-control" placeholder="Biarkan kosong jika default">
+            </div>
+            <div class="form-group">
+              <label for="set-folder-bukti">Google Drive Folder ID (Bukti)</label>
+              <input type="text" id="set-folder-bukti" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="set-folder-lapor">Google Drive Folder ID (Laporan PDF)</label>
+              <input type="text" id="set-folder-lapor" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Simpan Pengaturan</button>
+            <button type="button" class="btn btn-secondary btn-block mt-8" id="btn-cancel-settings">Batal</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- VIEW: VERIFIKASI DOKUMEN PDF -->
+      <section id="view-verify-pdf" class="app-view">
+        <div class="card">
+          <h2 class="card-title-medium">Pencocokan Kode Keabsahan PDF</h2>
+          <p class="card-desc-small">Masukkan kode verifikasi dokumen (misal: VER-XXXX atau REC-XXXX) yang tertera di bagian bawah PDF untuk memverifikasi kecocokannya dengan database sistem.</p>
+          
+          <form id="form-verify-code">
+            <div class="form-group">
+              <label for="verify-input-code">Kode Verifikasi Dokumen</label>
+              <input type="text" id="verify-input-code" class="form-control text-uppercase" placeholder="Contoh: VER-ABC123XYZ">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">Verifikasi Kode</button>
+            <button type="button" class="btn btn-secondary btn-block mt-8" id="btn-cancel-verify">Kembali</button>
+          </form>
+          
+          <div id="verify-result-box" class="verify-result-box"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. PORTAL PESERTA APP LAYOUT -->
+  <!-- ========================================================================= -->
+  <div id="portal-app-layout" class="hidden">
+    <header class="app-header flex">
+      <div class="app-title-group">
+        <h1 class="app-activity-name">Perjalanan Transportasi Bandara</h1>
+        <p>Portal Peserta: <strong id="portal-welcome-name" class="text-primary">Nama Peserta</strong></p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-xs" id="portal-logout-btn">Keluar</button>
+      </div>
+    </header>
+
+    <main class="container">
+      
+      <!-- VIEW: PORTAL DASHBOARD (PESERTA) -->
+      <section id="view-portal-dashboard" class="app-view">
+        <!-- Private Stats Card -->
+        <div class="card portal-stats-card" id="portal-stats-card">
+          <h3 class="portal-stats-title">Ringkasan Biaya Transport Saya</h3>
+          <table class="portal-stats-table">
+            <tr><td class="label-cell">Jumlah Transaksi Diajukan</td><td class="val-cell" id="portal-stat-total-transaksi">0 kali</td></tr>
+            <tr><td class="label-cell">Total Pengeluaran Disetujui</td><td class="val-cell text-blue-portal" id="portal-stat-total-disetujui">Rp0</td></tr>
+            <tr><td class="label-cell">Reimbursement Sudah Diganti</td><td class="val-cell text-green-portal" id="portal-stat-sudah-diganti">Rp0</td></tr>
+            <tr><td class="label-cell text-bold">Reimbursement Belum Diganti</td><td class="val-cell text-red-portal text-bold" id="portal-stat-belum-diganti">Rp0</td></tr>
+          </table>
+          
+          <button class="btn btn-primary btn-block btn-download-recap" id="btn-download-my-recap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Unduh Rekap Transport Saya
+          </button>
+        </div>
+
+        <div class="section-header">
+          <h2>Pengajuan Biaya Saya</h2>
+        </div>
+
+        <div class="activity-list" id="portal-expenses-list">
+          <!-- Diisi via JS -->
+        </div>
+      </section>
+
+      <!-- Portal Peserta Bottom Navigation -->
+      <nav class="bottom-nav hidden" id="portal-bottom-nav">
+        <a class="nav-item active" data-view="portal-dashboard">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Portal Beranda
+        </a>
+        <a class="nav-item nav-item-center" data-view="add">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </a>
+        <a class="nav-item" id="portal-nav-logout">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Keluar
+        </a>
+      </nav>
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. BOTTOM SHEETS & MODALS (POP-UPS) -->
+  <!-- ========================================================================= -->
+  
+  <!-- BOTTOM SHEET: FILTER TRANSAKSI -->
+  <div id="filter-sheet" class="bottom-sheet">
+    <div class="bottom-sheet-handle" data-dismiss="bottom-sheet"></div>
+    <div class="bottom-sheet-header">
+      <h3>Filter Pencarian Pengeluaran</h3>
+      <span class="btn-reset-filter" id="reset-filter-btn">Reset</span>
+    </div>
+    <div class="bottom-sheet-body">
+      <div class="form-group">
+        <label for="filter-peserta">Peserta</label>
+        <select id="filter-peserta" class="form-control">
+          <!-- Dropdown otomatis -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Rentang Tanggal Perjalanan</label>
+        <div class="flex gap-8">
+          <input type="date" id="filter-start-date" class="form-control flex-1">
+          <input type="date" id="filter-end-date" class="form-control flex-1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="filter-jenis-perjalanan">Jenis Perjalanan</label>
+        <select id="filter-jenis-perjalanan" class="form-control">
+          <option value="">Semua Perjalanan</option>
+          <option value="Rumah ke Bandara">Rumah ke Bandara</option>
+          <option value="Bandara ke Rumah">Bandara ke Rumah</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="filter-jenis-transport">Jenis Transportasi</label>
+        <select id="filter-jenis-transport" class="form-control">
+          <option value="">Semua Transportasi</option>
+          <option value="Grab">Grab</option>
+          <option value="Gojek">Gojek</option>
+          <option value="Taksi">Taksi</option>
+          <option value="Bensin">Bensin</option>
+          <option value="Tol">Tol</option>
+          <option value="Parkir">Parkir</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="filter-status-verif">Status Verifikasi</label>
+        <select id="filter-status-verif" class="form-control">
+          <option value="">Semua Status</option>
+          <option value="Menunggu">Menunggu</option>
+          <option value="Disetujui">Disetujui</option>
+          <option value="Ditolak">Ditolak</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="filter-status-bayar">Status Pembayaran</label>
+        <select id="filter-status-bayar" class="form-control">
+          <option value="">Semua Status</option>
+          <option value="Belum Dibayar">Belum Dibayar</option>
+          <option value="Sudah Dibayar">Sudah Dibayar</option>
+          <option value="Tidak Perlu Diganti">Tidak Perlu Diganti</option>
+        </select>
+      </div>
+    </div>
+    <div class="bottom-sheet-footer">
+      <button class="btn btn-primary btn-block" id="btn-apply-filter">Terapkan Filter</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM SHEET: RINCIAN TRANSAKSI DETAIL -->
+  <div id="detail-sheet" class="bottom-sheet">
+    <div class="bottom-sheet-handle" data-dismiss="bottom-sheet"></div>
+    <div class="bottom-sheet-header">
+      <h3>Detail Transaksi Transport</h3>
+      <span class="modal-close" data-dismiss="bottom-sheet">Tutup</span>
+    </div>
+    <div class="bottom-sheet-body" id="detail-content">
+      <!-- Diisi dinamis via JS -->
+    </div>
+  </div>
+
+  <!-- MODAL: REJECT CONFIRMATION -->
+  <div id="reject-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Alasan Penolakan Pengajuan *</h3>
+        <button class="modal-close" data-dismiss="modal">&times;</button>
+      </div>
+      <input type="hidden" id="reject-expense-id">
+      <div class="form-group">
+        <textarea id="reject-reason" class="form-control" rows="4" placeholder="Wajib menuliskan alasan penolakan..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button class="btn btn-danger" id="btn-submit-reject">Tolak Pengajuan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MARK AS PAID -->
+  <div id="pay-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Catat Pembayaran Reimburse</h3>
+        <button class="modal-close" data-dismiss="modal">&times;</button>
+      </div>
+      <input type="hidden" id="pay-expense-id">
+      
+      <div class="form-group">
+        <label for="pay-tanggal">Tanggal Pembayaran *</label>
+        <input type="date" id="pay-tanggal" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="pay-metode">Metode Pembayaran *</label>
+        <select id="pay-metode" class="form-control">
+          <option value="Transfer Bank">Transfer Bank</option>
+          <option value="Cash / Tunai">Cash / Tunai</option>
+          <option value="Dompet Digital">Dompet Digital</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Unggah Bukti Pembayaran / Transfer (Optional)</label>
+        <label class="btn-upload">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Unggah Bukti Transfer
+          <input type="file" id="pay-bukti" accept="image/*" class="hidden">
+        </label>
+        <div id="pay-preview" class="file-preview hidden"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button class="btn btn-success" id="btn-submit-payment">Tandai Sudah Dibayar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT PARTICIPANT -->
+  <div id="part-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="part-modal-title">Tambah Peserta Baru</h3>
+        <button class="modal-close" data-dismiss="modal">&times;</button>
+      </div>
+      <input type="hidden" id="part-id">
+      
+      <div class="form-group">
+        <label for="part-nama">Nama Peserta *</label>
+        <input type="text" id="part-nama" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="part-nohp">Nomor HP / WhatsApp *</label>
+        <input type="text" id="part-nohp" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="part-ket">Keterangan / Jabatan</label>
+        <input type="text" id="part-ket" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="part-status">Status Aktif</label>
+        <select id="part-status" class="form-control">
+          <option value="Aktif">Aktif</option>
+          <option value="Nonaktif">Nonaktif</option>
+        </select>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button class="btn btn-primary" id="btn-submit-participant">Simpan Peserta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Link JavaScript Statis -->
+  <script src="script.js"></script>
+</body>
+</html>
