@@ -355,6 +355,24 @@ function setupNavigation() {
 }
 
 function switchView(viewName) {
+  // Jika membuka form tambah pengeluaran, pindahkan element ke container layout role yang aktif
+  if (viewName === 'add') {
+    const viewAdd = document.getElementById('view-add');
+    if (viewAdd) {
+      if (state.role === 'admin') {
+        const adminContainer = document.querySelector('#admin-app-layout .container');
+        if (adminContainer && viewAdd.parentElement !== adminContainer) {
+          adminContainer.appendChild(viewAdd);
+        }
+      } else {
+        const portalContainer = document.querySelector('#portal-app-layout .container');
+        if (portalContainer && viewAdd.parentElement !== portalContainer) {
+          portalContainer.appendChild(viewAdd);
+        }
+      }
+    }
+  }
+
   // Hilangkan kelas active dari semua view
   document.querySelectorAll('.app-view').forEach(view => {
     view.classList.remove('active');
