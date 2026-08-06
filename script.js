@@ -28,20 +28,30 @@ const state = {
   tempFundFile: null
 };
 
+// =========================================================================
+// KONFIGURASI API UTAMA
+// =========================================================================
+// Tempelkan URL Web App Google Apps Script Anda di bawah ini agar aplikasi berjalan otomatis tanpa input manual!
+const DEFAULT_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxLKNyqI0W4kL1YYQglnaJIzOEqCStwQ6_hw9xm5iu-w3QFWbaq52iwshLMtbwCoe79/exec';
+
+function getApiUrl() {
+  return localStorage.getItem('gas_api_url') || DEFAULT_GAS_API_URL;
+}
+
 // Inisialisasi Aplikasi Saat Window Dimuat
 window.addEventListener('DOMContentLoaded', () => {
   initApp();
 });
 
 function initApp() {
-  const apiUrl = localStorage.getItem('gas_api_url');
-  
+  const apiUrl = getApiUrl();
+
   if (!apiUrl) {
     // Tampilkan screen config API jika URL belum diset
     const apiConfigScreen = document.getElementById('api-config-screen');
     const loginScreen = document.getElementById('portal-login-screen');
     const adminApp = document.getElementById('admin-app-layout');
-    
+
     if (apiConfigScreen) {
       apiConfigScreen.style.display = 'flex';
       apiConfigScreen.classList.remove('hidden');
@@ -51,17 +61,17 @@ function initApp() {
       loginScreen.classList.add('hidden');
     }
     if (adminApp) adminApp.classList.add('hidden');
-    
+
     // Bind tombol simpan config API
     bindElClick('btn-save-api-config', handleSaveApiConfig);
     return;
   }
-  
+
   // Set tampilan awal ke Portal login screen (Landing Page)
   const adminApp = document.getElementById('admin-app-layout');
   const loginScreen = document.getElementById('portal-login-screen');
   const apiConfigScreen = document.getElementById('api-config-screen');
-  
+
   if (adminApp) adminApp.classList.add('hidden');
   if (apiConfigScreen) {
     apiConfigScreen.style.display = 'none';
@@ -74,19 +84,19 @@ function initApp() {
 
   // Setup Event Bindings
   setupEventBindings();
-  
+
   // Setup Menu Navigasi
   setupNavigation();
-  
+
   // Ambil Data Awal (Settings & Dropdown Peserta)
   loadInitialData();
-  
+
   // Format Live Input Rupiah
   setupRupiahInputFormatter();
-  
+
   // Setup Event Listeners untuk Form Submissions
   setupFormSubmitHandlers();
-  
+
   // Setup File Upload Previews
   setupFileUploadPreviews();
 
@@ -107,10 +117,10 @@ function handleSaveApiConfig() {
     showToast('Format URL API tidak valid. Harus diawali https://script.google.com/', 'error');
     return;
   }
-  
+
   localStorage.setItem('gas_api_url', inputVal);
   showToast('API URL berhasil disimpan dan dihubungkan.', 'success');
-  
+
   // Reload App
   initApp();
 }
@@ -121,44 +131,44 @@ function handleSaveApiConfig() {
 
 // Helper GET Request ke Apps Script
 async function callApiGet(action, params = {}) {
-  const apiUrl = localStorage.getItem('gas_api_url');
+  const apiUrl = getApiUrl();
   if (!apiUrl) {
     showToast('Apps Script API URL belum dikonfigurasi!', 'error');
     throw new Error('API URL not set');
   }
-  
+
   const url = new URL(apiUrl);
   url.searchParams.append('action', action);
   for (const key in params) {
     url.searchParams.append(key, params[key]);
   }
-  
+
   const response = await fetch(url.toString(), {
     method: 'GET',
     mode: 'cors',
     redirect: 'follow'
   });
-  
+
   if (!response.ok) {
     throw new Error('Gagal mengambil data dari API.');
   }
-  
+
   return await response.json();
 }
 
 // Helper POST Request ke Apps Script (Menggunakan text/plain untuk bypass CORS preflight)
 async function callApiPost(action, data = {}) {
-  const apiUrl = localStorage.getItem('gas_api_url');
+  const apiUrl = getApiUrl();
   if (!apiUrl) {
     showToast('Apps Script API URL belum dikonfigurasi!', 'error');
     throw new Error('API URL not set');
   }
-  
+
   const payload = {
     action: action,
     data: data
   };
-  
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     mode: 'cors',
@@ -168,24 +178,24 @@ async function callApiPost(action, data = {}) {
     },
     body: JSON.stringify(payload)
   });
-  
+
   if (!response.ok) {
     throw new Error('Gagal mengirim data ke API.');
   }
-  
+
   return await response.json();
 }
 
 // Helper khusus mengubah status verifikasi pengeluaran
 async function updateExpenseStatus(expenseId, status, rejectionReason) {
-  const apiUrl = localStorage.getItem('gas_api_url');
+  const apiUrl = getApiUrl();
   const payload = {
     action: 'updateExpenseStatus',
     expenseId: expenseId,
     status: status,
     rejectionReason: rejectionReason
   };
-  
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     mode: 'cors',
@@ -195,19 +205,19 @@ async function updateExpenseStatus(expenseId, status, rejectionReason) {
     },
     body: JSON.stringify(payload)
   });
-  
+
   return await response.json();
 }
 
 // Helper khusus mencatat pembayaran reimbursement
 async function savePayment(expenseId, paymentData) {
-  const apiUrl = localStorage.getItem('gas_api_url');
+  const apiUrl = getApiUrl();
   const payload = {
     action: 'savePayment',
     expenseId: expenseId,
     data: paymentData
   };
-  
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     mode: 'cors',
@@ -217,18 +227,18 @@ async function savePayment(expenseId, paymentData) {
     },
     body: JSON.stringify(payload)
   });
-  
+
   return await response.json();
 }
 
 // Helper khusus menghapus pengeluaran
 async function deleteExpense(expenseId) {
-  const apiUrl = localStorage.getItem('gas_api_url');
+  const apiUrl = getApiUrl();
   const payload = {
     action: 'deleteExpense',
     expenseId: expenseId
   };
-  
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     mode: 'cors',
@@ -238,7 +248,7 @@ async function deleteExpense(expenseId) {
     },
     body: JSON.stringify(payload)
   });
-  
+
   return await response.json();
 }
 
@@ -249,51 +259,51 @@ function setupEventBindings() {
   // 1. Portal Login Screen
   bindElClick('portal-login-btn', handlePortalAccess);
   bindElClick('btn-enter-admin', enterAdminMode);
-  
+
   // 2. Admin Layout Navigation
   bindElClick('sidebar-logout-btn', exitAdminToPortal);
   bindElClick('header-portal-btn', exitAdminToPortal);
-  
+
   // 3. Portal Layout Navigation
   bindElClick('portal-logout-btn', logoutPortal);
   bindElClick('portal-nav-logout', logoutPortal);
   bindElClick('btn-download-my-recap', downloadMyRecap);
-  
+
   // 4. Dashboard Admin
   bindElClick('view-all-expenses', () => switchView('expenses'));
-  
+
   // 5. Filter & Search
   const searchInput = document.getElementById('search-expense');
   if (searchInput) searchInput.addEventListener('input', renderExpensesList);
-  
+
   bindElClick('chip-all', () => setChipFilter('', '', 'chip-all'));
   bindElClick('chip-pending', () => setChipFilter('verification', 'Menunggu', 'chip-pending'));
   bindElClick('chip-unpaid', () => setChipFilter('payment', 'Belum Dibayar', 'chip-unpaid'));
-  
+
   bindElClick('open-filter-btn', () => openBottomSheet('filter-sheet'));
   bindElClick('reset-filter-btn', resetFilters);
   bindElClick('btn-apply-filter', applyFilters);
-  
+
   // 6. Menu Lainnya (More View)
   bindElClick('menu-admin-participants', () => { switchView('admin-participants'); loadAdminParticipantsView(); });
   bindElClick('menu-funds', () => { switchView('funds'); loadFundsData(); });
   bindElClick('menu-verify-pdf', () => switchView('verify-pdf'));
   bindElClick('menu-settings', () => switchView('settings'));
   bindElClick('btn-generate-report', generateAdminReportPDF);
-  
+
   // 7. Peserta View
   bindElClick('btn-add-participant', openAddParticipantModal);
   bindElClick('btn-back-participants', () => switchView('more'));
-  
+
   // 8. Dana Masuk View
   bindElClick('btn-add-fund-nav', () => switchView('add-fund'));
   bindElClick('btn-back-funds', () => switchView('more'));
   bindElClick('btn-back-funds-2', () => switchView('more'));
-  
+
   // 9. Back buttons
   bindElClick('btn-cancel-settings', () => switchView('more'));
   bindElClick('btn-cancel-verify', () => switchView('more'));
-  
+
   // 10. Modals Submissions
   bindElClick('btn-submit-reject', submitRejection);
   bindElClick('btn-submit-payment', submitPayment);
@@ -317,7 +327,7 @@ function setupEventBindings() {
       const modal = dismissModal.closest('.modal-overlay');
       if (modal) modal.classList.remove('active');
     }
-    
+
     const dismissSheet = e.target.closest('[data-dismiss="bottom-sheet"]');
     if (dismissSheet) {
       const sheet = dismissSheet.closest('.bottom-sheet');
@@ -341,11 +351,11 @@ function bindElClick(id, handler) {
  */
 function setupNavigation() {
   const navItems = document.querySelectorAll('.nav-item, .sidebar-link');
-  
+
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
-      
+
       const targetView = item.getAttribute('data-view');
       if (targetView) {
         switchView(targetView);
@@ -394,14 +404,14 @@ function switchView(viewName) {
     view.classList.remove('active');
     view.classList.add('hidden');
   });
-  
+
   // Aktifkan view target
   const targetViewEl = document.getElementById(`view-${viewName}`);
   if (targetViewEl) {
     targetViewEl.classList.add('active');
     targetViewEl.classList.remove('hidden');
     state.activeView = viewName;
-    
+
     // Perbarui status aktif di Navigasi Bawah & Sidebar
     document.querySelectorAll('.nav-item, .sidebar-link').forEach(nav => {
       if (nav.getAttribute('data-view') === viewName) {
@@ -410,10 +420,10 @@ function switchView(viewName) {
         nav.classList.remove('active');
       }
     });
-    
+
     // Auto-scroll ke atas saat pindah halaman
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
+
     // Jalankan trigger khusus per halaman
     onViewChange(viewName);
   }
@@ -445,7 +455,7 @@ function onViewChange(viewName) {
  */
 function loadInitialData() {
   showGlobalLoading(true);
-  
+
   let loadedCount = 0;
   const onDone = () => {
     loadedCount++;
@@ -457,10 +467,10 @@ function loadInitialData() {
   callApiGet('getSettings')
     .then((settings) => {
       state.settings = settings;
-      
+
       const setApiUrlInput = document.getElementById('set-api-url');
       if (setApiUrlInput) setApiUrlInput.value = localStorage.getItem('gas_api_url') || '';
-      
+
       // Perbarui judul kegiatan di header
       document.querySelectorAll('.app-activity-name').forEach(el => {
         el.textContent = settings.namaKegiatan;
@@ -489,17 +499,17 @@ function loadInitialData() {
  */
 function populateParticipantDropdowns() {
   const selects = ['exp-peserta', 'filter-peserta', 'portal-peserta-select'];
-  
+
   selects.forEach(id => {
     const select = document.getElementById(id);
     if (!select) return;
-    
+
     // Simpan nilai lama
     const oldVal = select.value;
-    
+
     // Kosongkan dan set default
     select.innerHTML = '';
-    
+
     if (id !== 'portal-peserta-select' && id !== 'exp-peserta') {
       const defOpt = document.createElement('option');
       defOpt.value = '';
@@ -516,7 +526,7 @@ function populateParticipantDropdowns() {
       defOpt.textContent = '-- Pilih Nama Anda --';
       select.appendChild(defOpt);
     }
-    
+
     // Isi data peserta yang aktif
     state.participants.forEach(p => {
       if (p.status === 'Aktif') {
@@ -526,7 +536,7 @@ function populateParticipantDropdowns() {
         select.appendChild(opt);
       }
     });
-    
+
     // Kembalikan nilai lama jika ada
     if (oldVal) select.value = oldVal;
   });
@@ -537,7 +547,7 @@ function populateParticipantDropdowns() {
  */
 function setupRupiahInputFormatter() {
   const rupiahInputs = document.querySelectorAll('.input-rupiah');
-  
+
   rupiahInputs.forEach(input => {
     input.addEventListener('input', (e) => {
       let val = e.target.value.replace(/[^0-9]/g, '');
@@ -568,12 +578,12 @@ function formatTanggalIndo(dateStr) {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
-  
+
   const namaBulan = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
-  
+
   return `${date.getDate()} ${namaBulan[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -583,20 +593,20 @@ function formatTanggalIndo(dateStr) {
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   if (!container) return;
-  
+
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  
+
   let icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
   if (type === 'success') {
     icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
   } else if (type === 'error') {
     icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
   }
-  
+
   toast.innerHTML = `${icon} <span>${message}</span>`;
   container.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.animation = 'toast-in 0.3s ease reverse forwards';
     setTimeout(() => {
@@ -648,19 +658,19 @@ function closeBottomSheet(id) {
 function setupFileUploadPreviews() {
   const cameraInput = document.getElementById('exp-camera');
   const galleryInput = document.getElementById('exp-gallery');
-  
+
   if (cameraInput) {
     cameraInput.addEventListener('change', (e) => handleSelectedFile(e.target.files[0], 'tempFile', 'exp-preview'));
   }
   if (galleryInput) {
     galleryInput.addEventListener('change', (e) => handleSelectedFile(e.target.files[0], 'tempFile', 'exp-preview'));
   }
-  
+
   const payFile = document.getElementById('pay-bukti');
   if (payFile) {
     payFile.addEventListener('change', (e) => handleSelectedFile(e.target.files[0], 'tempPaymentFile', 'pay-preview'));
   }
-  
+
   const fundFile = document.getElementById('fund-bukti');
   if (fundFile) {
     fundFile.addEventListener('change', (e) => handleSelectedFile(e.target.files[0], 'tempFundFile', 'fund-preview'));
@@ -669,18 +679,18 @@ function setupFileUploadPreviews() {
 
 function handleSelectedFile(file, stateProp, previewContainerId) {
   if (!file) return;
-  
+
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
   if (!allowedTypes.includes(file.type)) {
     showToast('Format berkas harus JPG, JPEG, PNG, atau PDF.', 'error');
     return;
   }
-  
+
   if (file.size > 5 * 1024 * 1024) {
     showToast('Ukuran berkas maksimal 5 MB.', 'error');
     return;
   }
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
     state[stateProp] = {
@@ -688,16 +698,16 @@ function handleSelectedFile(file, stateProp, previewContainerId) {
       name: file.name,
       type: file.type
     };
-    
+
     const previewContainer = document.getElementById(previewContainerId);
     if (previewContainer) {
       previewContainer.innerHTML = '';
       previewContainer.style.display = 'flex';
       previewContainer.classList.remove('hidden');
-      
+
       const fileInfo = document.createElement('div');
       fileInfo.className = 'file-preview-info';
-      
+
       if (file.type.startsWith('image/')) {
         const img = document.createElement('img');
         img.src = e.target.result;
@@ -705,34 +715,34 @@ function handleSelectedFile(file, stateProp, previewContainerId) {
       } else {
         fileInfo.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:red;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>';
       }
-      
+
       const nameText = document.createElement('span');
       nameText.textContent = file.name;
       fileInfo.appendChild(nameText);
-      
+
       const removeBtn = document.createElement('button');
       removeBtn.className = 'file-preview-remove';
       removeBtn.type = 'button';
       removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"></svg>';
-      
+
       removeBtn.addEventListener('click', () => {
         state[stateProp] = null;
         previewContainer.innerHTML = '';
         previewContainer.style.display = 'none';
         previewContainer.classList.add('hidden');
-        
+
         const inputs = ['exp-camera', 'exp-gallery', 'pay-bukti', 'fund-bukti'];
         inputs.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
       });
-      
+
       previewContainer.appendChild(fileInfo);
       previewContainer.appendChild(removeBtn);
     }
   };
-  
+
   reader.readAsDataURL(file);
 }
 
@@ -745,22 +755,22 @@ function loadDashboardData() {
   document.getElementById('dash-main-card-content').style.display = 'none';
   document.getElementById('dash-main-card-content').classList.add('hidden');
   document.getElementById('dash-quick-grid').style.opacity = '0.5';
-  
+
   callApiGet('getDashboard')
     .then((data) => {
       document.getElementById('dash-main-card-loader').style.display = 'none';
       document.getElementById('dash-main-card-loader').classList.add('hidden');
-      
+
       const contentEl = document.getElementById('dash-main-card-content');
       contentEl.style.display = 'block';
       contentEl.classList.remove('hidden');
-      
+
       document.getElementById('dash-quick-grid').style.opacity = '1';
-      
+
       const balanceTypeLabel = document.getElementById('dash-balance-type');
       const balanceVal = document.getElementById('dash-balance-val');
       const statusBanner = document.getElementById('dash-status-banner');
-      
+
       if (data.saldoDana >= 0 && data.kekuranganDana <= 0) {
         balanceTypeLabel.textContent = 'Saldo Dana Transport';
         balanceVal.textContent = formatRupiah(data.saldoDana);
@@ -772,15 +782,15 @@ function loadDashboardData() {
         statusBanner.className = 'status-banner deficit';
         statusBanner.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Dana transport kurang sebesar ${formatRupiah(data.kekuranganDana)}`;
       }
-      
+
       document.getElementById('dash-total-masuk').textContent = formatRupiah(data.totalDanaMasuk);
       document.getElementById('dash-total-keluar').textContent = formatRupiah(data.totalDisetujui);
-      
+
       document.getElementById('dash-stat-pending').textContent = data.menungguVerifikasi;
       document.getElementById('dash-stat-approved').textContent = formatRupiah(data.totalDisetujui);
       document.getElementById('dash-stat-unpaid').textContent = formatRupiah(data.totalBelumBayar);
       document.getElementById('dash-stat-peserta').textContent = data.jumlahPeserta;
-      
+
       loadRecentActivities();
     })
     .catch((err) => {
@@ -791,12 +801,12 @@ function loadDashboardData() {
 function loadRecentActivities() {
   const container = document.getElementById('dash-activities-list');
   container.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
-  
+
   callApiGet('getExpenses')
     .then((expenses) => {
       state.expenses = expenses;
       container.innerHTML = '';
-      
+
       if (expenses.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
@@ -806,11 +816,11 @@ function loadRecentActivities() {
             <button class="btn btn-primary btn-sm" id="btn-dashboard-empty-add">Catat Pengeluaran</button>
           </div>
         `;
-        
+
         bindElClick('btn-dashboard-empty-add', () => switchView('add'));
         return;
       }
-      
+
       const recent = expenses.slice(0, 3);
       recent.forEach(e => {
         container.appendChild(createTransactionCard(e));
@@ -828,16 +838,16 @@ function createTransactionCard(e) {
   const card = document.createElement('div');
   card.className = 'transaction-card';
   card.setAttribute('data-id', e.id);
-  
+
   const statusVerifClass = e.statusVerifikasi.toLowerCase();
   const statusBayarClass = e.statusPembayaran.toLowerCase().replace(/\s+/g, '-');
-  
+
   const badgeVerif = `<span class="badge ${statusVerifClass}">${e.statusVerifikasi}</span>`;
   const badgeBayar = `<span class="badge ${statusBayarClass}">${e.statusPembayaran}</span>`;
-  
+
   const initial = e.namaPeserta ? e.namaPeserta.charAt(0).toUpperCase() : '?';
   const travelDate = formatTanggalIndo(e.tanggalPerjalanan);
-  
+
   card.innerHTML = `
     <div class="t-header">
       <div class="t-user">
@@ -857,11 +867,11 @@ function createTransactionCard(e) {
       <div class="t-amount">${formatRupiah(e.nominal)}</div>
     </div>
   `;
-  
+
   card.addEventListener('click', () => {
     openExpenseDetail(e.id);
   });
-  
+
   return card;
 }
 
@@ -871,7 +881,7 @@ function createTransactionCard(e) {
 function loadExpensesData() {
   const listContainer = document.getElementById('expenses-list-container');
   listContainer.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
-  
+
   callApiGet('getExpenses')
     .then((expenses) => {
       state.expenses = expenses;
@@ -885,7 +895,7 @@ function loadExpensesData() {
 function renderExpensesList() {
   const container = document.getElementById('expenses-list-container');
   container.innerHTML = '';
-  
+
   const filtered = state.expenses.filter(e => {
     if (state.filters.search && !e.namaPeserta.toLowerCase().includes(state.filters.search.toLowerCase())) {
       return false;
@@ -896,13 +906,13 @@ function renderExpensesList() {
     if (state.filters.startDate) {
       const expDate = new Date(e.tanggalPerjalanan);
       const sDate = new Date(state.filters.startDate);
-      sDate.setHours(0,0,0,0);
+      sDate.setHours(0, 0, 0, 0);
       if (expDate < sDate) return false;
     }
     if (state.filters.endDate) {
       const expDate = new Date(e.tanggalPerjalanan);
       const eDate = new Date(state.filters.endDate);
-      eDate.setHours(23,59,59,999);
+      eDate.setHours(23, 59, 59, 999);
       if (expDate > eDate) return false;
     }
     if (state.filters.travelType && e.jenisPerjalanan !== state.filters.travelType) {
@@ -919,7 +929,7 @@ function renderExpensesList() {
     }
     return true;
   });
-  
+
   if (filtered.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
@@ -932,13 +942,13 @@ function renderExpensesList() {
     bindElClick('btn-reset-empty-filter', resetFilters);
     return;
   }
-  
+
   const isDesktop = window.innerWidth >= 768;
-  
+
   if (isDesktop) {
     const tableWrapper = document.createElement('div');
     tableWrapper.className = 'responsive-table-wrapper';
-    
+
     let tableHtml = `
       <table class="table-desktop">
         <thead>
@@ -956,11 +966,11 @@ function renderExpensesList() {
         </thead>
         <tbody>
     `;
-    
+
     filtered.forEach(e => {
       const vClass = e.statusVerifikasi.toLowerCase();
       const pClass = e.statusPembayaran.toLowerCase().replace(/\s+/g, '-');
-      
+
       tableHtml += `
         <tr data-row-id="${e.id}" style="cursor:pointer;">
           <td><strong>${e.id}</strong></td>
@@ -975,11 +985,11 @@ function renderExpensesList() {
         </tr>
       `;
     });
-    
+
     tableHtml += `</tbody></table>`;
     tableWrapper.innerHTML = tableHtml;
     container.appendChild(tableWrapper);
-    
+
     tableWrapper.querySelectorAll('tr[data-row-id]').forEach(row => {
       row.addEventListener('click', () => {
         openExpenseDetail(row.getAttribute('data-row-id'));
@@ -1004,7 +1014,7 @@ function applyFilters() {
   state.filters.transportType = document.getElementById('filter-jenis-transport').value;
   state.filters.verification = document.getElementById('filter-status-verif').value;
   state.filters.payment = document.getElementById('filter-status-bayar').value;
-  
+
   updateFilterChips();
   renderExpensesList();
   closeBottomSheet('filter-sheet');
@@ -1019,7 +1029,7 @@ function resetFilters() {
   document.getElementById('filter-jenis-transport').value = '';
   document.getElementById('filter-status-verif').value = '';
   document.getElementById('filter-status-bayar').value = '';
-  
+
   state.filters = {
     search: '',
     startDate: '',
@@ -1030,10 +1040,10 @@ function resetFilters() {
     verification: '',
     payment: ''
   };
-  
+
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   document.getElementById('chip-all').classList.add('active');
-  
+
   renderExpensesList();
   closeBottomSheet('filter-sheet');
 }
@@ -1042,22 +1052,22 @@ function setChipFilter(type, value, chipId) {
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   const targetChip = document.getElementById(chipId);
   if (targetChip) targetChip.classList.add('active');
-  
+
   state.filters.verification = '';
   state.filters.payment = '';
-  
+
   if (type === 'verification') {
     state.filters.verification = value;
   } else if (type === 'payment') {
     state.filters.payment = value;
   }
-  
+
   renderExpensesList();
 }
 
 function updateFilterChips() {
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  
+
   if (state.filters.verification === 'Menunggu') {
     document.getElementById('chip-pending').classList.add('active');
   } else if (state.filters.payment === 'Belum Dibayar') {
@@ -1073,7 +1083,7 @@ function updateFilterChips() {
 function loadFundsData() {
   const container = document.getElementById('funds-list-container');
   container.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
-  
+
   callApiGet('getFunds')
     .then((funds) => {
       state.funds = funds;
@@ -1087,23 +1097,23 @@ function loadFundsData() {
 function renderFundsList() {
   const container = document.getElementById('funds-list-container');
   container.innerHTML = '';
-  
+
   if (state.funds.length === 0) {
     container.innerHTML = '<div class="empty-state"><h3>Belum ada dana masuk</h3></div>';
     return;
   }
-  
+
   state.funds.forEach(f => {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.padding = '14px';
     card.style.marginBottom = '10px';
-    
+
     let fileLink = '';
     if (f.buktiTransfer) {
       fileLink = `<a href="${f.buktiTransfer}" target="_blank" class="btn btn-secondary btn-sm" style="height:32px; font-size:11px; padding:0 8px; margin-top:8px;">Lihat Bukti Transfer</a>`;
     }
-    
+
     card.innerHTML = `
       <div class="flex justify-between align-center">
         <div>
@@ -1126,26 +1136,26 @@ function renderFundsList() {
 function loadRecapData() {
   const summaryContainer = document.getElementById('recap-summary-container');
   const participantsContainer = document.getElementById('recap-participants-container');
-  
+
   summaryContainer.innerHTML = '<div class="skeleton skeleton-card"></div>';
   participantsContainer.innerHTML = '<div class="skeleton skeleton-card"></div>';
-  
+
   let dashboardData = null;
   let recapsData = null;
-  
+
   const onDone = () => {
     if (dashboardData && recapsData) {
       renderRecap(dashboardData, recapsData);
     }
   };
-  
+
   callApiGet('getDashboard')
     .then((data) => {
       dashboardData = data;
       onDone();
     })
     .catch((err) => showToast('Gagal memuat ringkasan rekap: ' + err.message, 'error'));
-    
+
   callApiGet('getParticipantRecaps')
     .then((recaps) => {
       recapsData = recaps;
@@ -1156,7 +1166,7 @@ function loadRecapData() {
 
 function renderRecap(dash, recaps) {
   const summaryContainer = document.getElementById('recap-summary-container');
-  
+
   let statusNotifyHtml = '';
   if (dash.totalDisetujui > dash.totalDanaMasuk) {
     statusNotifyHtml = `
@@ -1173,7 +1183,7 @@ function renderRecap(dash, recaps) {
       </div>
     `;
   }
-  
+
   summaryContainer.innerHTML = `
     <div class="card" style="padding:16px;">
       <h3 style="font-size:13px; font-weight:700; color:var(--primary); margin-bottom:12px; text-transform:uppercase;">Rekapitulasi Dana Utama</h3>
@@ -1188,15 +1198,15 @@ function renderRecap(dash, recaps) {
       ${statusNotifyHtml}
     </div>
   `;
-  
+
   const participantsContainer = document.getElementById('recap-participants-container');
   participantsContainer.innerHTML = '';
-  
+
   recaps.forEach((r, idx) => {
     const accordion = document.createElement('div');
     accordion.className = 'accordion';
     accordion.setAttribute('id', `accordion-recap-${idx}`);
-    
+
     let detailsHtml = `
       <div style="font-size:11px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
         <span>Rumah ke Bandara: <strong>${r.toAirport} kali</strong></span>
@@ -1209,7 +1219,7 @@ function renderRecap(dash, recaps) {
         <tr style="background-color:var(--background); font-weight:700;"><td style="padding:6px; color:var(--text);">Belum Diganti (Outstanding)</td><td style="padding:6px; text-align:right; color:var(--danger);">${formatRupiah(r.unpaid)}</td></tr>
       </table>
     `;
-    
+
     accordion.innerHTML = `
       <div class="accordion-header" data-toggle="accordion" data-target="accordion-recap-${idx}">
         <div class="accordion-title">
@@ -1234,15 +1244,15 @@ function renderRecap(dash, recaps) {
         </button>
       </div>
     `;
-    
+
     accordion.querySelector('[data-toggle="accordion"]').addEventListener('click', () => {
       accordion.classList.toggle('active');
     });
-    
+
     accordion.querySelector('[data-action="download-recap"]').addEventListener('click', (e) => {
       downloadRecapPDF(e.target.closest('[data-name]').getAttribute('data-name'));
     });
-    
+
     participantsContainer.appendChild(accordion);
   });
 }
@@ -1255,18 +1265,18 @@ function loadSettingsData() {
   callApiGet('getSettings')
     .then((settings) => {
       state.settings = settings;
-      
+
       document.getElementById('set-api-url').value = localStorage.getItem('gas_api_url') || '';
       document.getElementById('set-nama-kegiatan').value = settings.namaKegiatan;
       document.getElementById('set-penanggung-jawab').value = settings.penanggungJawab;
       document.getElementById('set-mengetahui').value = settings.mengetahui;
       document.getElementById('set-tanggal-kegiatan').value = settings.tanggalKegiatan;
       document.getElementById('set-dp-awal').value = formatNumber(settings.dpAwal);
-      
+
       document.getElementById('set-sheet-id').value = settings.spreadsheetId;
       document.getElementById('set-folder-bukti').value = settings.folderBuktiId;
       document.getElementById('set-folder-lapor').value = settings.folderLaporanId;
-      
+
       showGlobalLoading(false);
     })
     .catch((err) => {
@@ -1284,13 +1294,13 @@ function openExpenseDetail(id) {
   currentDetailId = id;
   const e = state.expenses.find(item => item.id === id);
   if (!e) return;
-  
+
   const container = document.getElementById('detail-content');
-  
+
   let paymentDetailsHtml = '';
   let verifBadge = `<span class="badge ${e.statusVerifikasi.toLowerCase()}">${e.statusVerifikasi}</span>`;
   let bayarBadge = `<span class="badge ${e.statusPembayaran.toLowerCase().replace(/\s+/g, '-')}" style="margin-left:4px;">${e.statusPembayaran}</span>`;
-  
+
   if (e.statusPembayaran === 'Sudah Dibayar') {
     let buktiBayarLinkHtml = '';
     if (e.linkBuktiPembayaran) {
@@ -1302,7 +1312,7 @@ function openExpenseDetail(id) {
         </div>
       `;
     }
-    
+
     paymentDetailsHtml = `
       <div class="detail-item" style="border-top: 1.5px dashed var(--border); padding-top:10px; margin-top:10px;">
         <span class="label">Rincian Reimbursement</span>
@@ -1314,7 +1324,7 @@ function openExpenseDetail(id) {
       </div>
     `;
   }
-  
+
   let proofHtml = '';
   if (e.linkBukti) {
     const viewUrl = getDirectViewUrl(e.linkBukti);
@@ -1328,7 +1338,7 @@ function openExpenseDetail(id) {
       </div>
     `;
   }
-  
+
   let rejectionHtml = '';
   if (e.statusVerifikasi === 'Ditolak' && e.alasanPenolakan) {
     rejectionHtml = `
@@ -1338,7 +1348,7 @@ function openExpenseDetail(id) {
       </div>
     `;
   }
-  
+
   container.innerHTML = `
     <div class="detail-item">
       <span class="label">ID Transaksi & Status</span>
@@ -1387,25 +1397,25 @@ function openExpenseDetail(id) {
     </div>
     <div id="detail-actions-placeholder"></div>
   `;
-  
+
   bindElClick('btn-detail-download', () => downloadSingleTransactionPDF(e.id));
-  
+
   const actionsPlaceholder = document.getElementById('detail-actions-placeholder');
   if (state.role === 'admin') {
     let approveBtn = '';
     let rejectBtn = '';
     let payBtn = '';
     let deleteBtn = `<button class="btn btn-danger btn-block" id="btn-detail-delete">Hapus Transaksi</button>`;
-    
+
     if (e.statusVerifikasi === 'Menunggu') {
       approveBtn = `<button class="btn btn-success" style="flex:1;" id="btn-detail-approve">Setujui</button>`;
       rejectBtn = `<button class="btn btn-danger" style="flex:1;" id="btn-detail-reject">Tolak</button>`;
     }
-    
+
     if (e.statusVerifikasi === 'Disetujui' && e.statusPembayaran === 'Belum Dibayar') {
       payBtn = `<button class="btn btn-primary btn-block" id="btn-detail-pay">Tandai Sudah Dibayar</button>`;
     }
-    
+
     actionsPlaceholder.innerHTML = `
       <div class="flex gap-10 mt-16">
         ${approveBtn}
@@ -1418,7 +1428,7 @@ function openExpenseDetail(id) {
         ${deleteBtn}
       </div>
     `;
-    
+
     bindElClick('btn-detail-approve', () => triggerApprove(e.id));
     bindElClick('btn-detail-reject', () => openRejectionModal(e.id));
     bindElClick('btn-detail-pay', () => openPaymentModal(e.id));
@@ -1426,7 +1436,7 @@ function openExpenseDetail(id) {
   } else {
     actionsPlaceholder.innerHTML = '';
   }
-  
+
   openBottomSheet('detail-sheet');
 }
 
@@ -1445,7 +1455,7 @@ function getDirectViewUrl(driveUrl) {
  */
 function triggerApprove(id) {
   if (!confirm('Apakah Anda yakin ingin menyetujui pengajuan ini?')) return;
-  
+
   showGlobalLoading(true);
   updateExpenseStatus(id, 'Disetujui', '')
     .then((res) => {
@@ -1473,15 +1483,15 @@ function openRejectionModal(id) {
 function submitRejection() {
   const id = document.getElementById('reject-expense-id').value;
   const reason = document.getElementById('reject-reason').value.trim();
-  
+
   if (!reason) {
     showToast('Alasan penolakan wajib diisi.', 'error');
     return;
   }
-  
+
   closeModal('reject-modal');
   showGlobalLoading(true);
-  
+
   updateExpenseStatus(id, 'Ditolak', reason)
     .then((res) => {
       showGlobalLoading(false);
@@ -1510,7 +1520,7 @@ function openPaymentModal(id) {
   document.getElementById('pay-preview').innerHTML = '';
   document.getElementById('pay-preview').style.display = 'none';
   state.tempPaymentFile = null;
-  
+
   openModal('pay-modal');
 }
 
@@ -1518,22 +1528,22 @@ function submitPayment() {
   const id = document.getElementById('pay-expense-id').value;
   const tanggal = document.getElementById('pay-tanggal').value;
   const metode = document.getElementById('pay-metode').value;
-  
+
   if (!tanggal || !metode) {
     showToast('Semua input wajib diisi.', 'error');
     return;
   }
-  
+
   const paymentData = {
     tanggalPembayaran: tanggal,
     metodePembayaran: metode,
     fileData: state.tempPaymentFile ? state.tempPaymentFile.base64 : null,
     fileName: state.tempPaymentFile ? state.tempPaymentFile.name : ''
   };
-  
+
   closeModal('pay-modal');
   showGlobalLoading(true);
-  
+
   savePayment(id, paymentData)
     .then((res) => {
       showGlobalLoading(false);
@@ -1556,7 +1566,7 @@ function submitPayment() {
  */
 function triggerDeleteExpense(id) {
   if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini secara permanen?')) return;
-  
+
   showGlobalLoading(true);
   deleteExpense(id)
     .then((res) => {
@@ -1584,7 +1594,7 @@ function setupFormSubmitHandlers() {
   if (expForm) {
     expForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+
       const peserta = document.getElementById('exp-peserta').value;
       const tanggal = document.getElementById('exp-tanggal').value;
       const jenisPerjalanan = document.getElementById('exp-jenis-perjalanan').value;
@@ -1594,7 +1604,7 @@ function setupFormSubmitHandlers() {
       const nominal = parseRupiah(document.getElementById('exp-nominal').value);
       const dibayarOleh = document.getElementById('exp-dibayar-oleh').value;
       const keterangan = document.getElementById('exp-keterangan').value.trim();
-      
+
       if (!peserta) { showToast('Wajib memilih peserta.', 'error'); return; }
       if (!tanggal) { showToast('Tanggal perjalanan wajib diisi.', 'error'); return; }
       if (!jenisPerjalanan) { showToast('Jenis perjalanan wajib diisi.', 'error'); return; }
@@ -1603,11 +1613,11 @@ function setupFormSubmitHandlers() {
       if (nominal <= 0) { showToast('Nominal biaya tidak valid.', 'error'); return; }
       if (!dibayarOleh) { showToast('Status penanggung bayar wajib dipilih.', 'error'); return; }
       if (!state.tempFile) { showToast('Foto bukti transaksi wajib diunggah.', 'error'); return; }
-      
+
       const submitBtn = expForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       showGlobalLoading(true);
-      
+
       const expenseObj = {
         namaPeserta: peserta,
         tanggalPerjalanan: tanggal,
@@ -1621,19 +1631,19 @@ function setupFormSubmitHandlers() {
         fileData: state.tempFile ? state.tempFile.base64 : null,
         fileName: state.tempFile ? state.tempFile.name : ''
       };
-      
+
       callApiPost('saveExpense', expenseObj)
         .then((res) => {
           showGlobalLoading(false);
           submitBtn.disabled = false;
-          
+
           if (res.success) {
             showToast(res.message, 'success');
             expForm.reset();
             state.tempFile = null;
             document.getElementById('exp-preview').innerHTML = '';
             document.getElementById('exp-preview').style.display = 'none';
-            
+
             if (state.role === 'admin') {
               switchView('dashboard');
             } else {
@@ -1650,25 +1660,25 @@ function setupFormSubmitHandlers() {
         });
     });
   }
-  
+
   // 2. Form Dana Masuk (Tambah Dana Tambahan)
   const fundForm = document.getElementById('form-add-fund');
   if (fundForm) {
     fundForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+
       const tanggal = document.getElementById('fund-tanggal').value;
       const jenisDana = document.getElementById('fund-jenis').value;
       const nominal = parseRupiah(document.getElementById('fund-nominal').value);
       const keterangan = document.getElementById('fund-keterangan').value.trim();
-      
+
       if (!tanggal || !jenisDana) { showToast('Tanggal dan jenis dana wajib diisi.', 'error'); return; }
       if (nominal <= 0) { showToast('Nominal dana tidak valid.', 'error'); return; }
-      
+
       const submitBtn = fundForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       showGlobalLoading(true);
-      
+
       const fundObj = {
         tanggal: tanggal,
         jenisDana: jenisDana,
@@ -1677,12 +1687,12 @@ function setupFormSubmitHandlers() {
         fileData: state.tempFundFile ? state.tempFundFile.base64 : null,
         fileName: state.tempFundFile ? state.tempFundFile.name : ''
       };
-      
+
       callApiPost('saveFund', fundObj)
         .then((res) => {
           showGlobalLoading(false);
           submitBtn.disabled = false;
-          
+
           if (res.success) {
             showToast(res.message, 'success');
             fundForm.reset();
@@ -1701,19 +1711,19 @@ function setupFormSubmitHandlers() {
         });
     });
   }
-  
+
   // 3. Form Pengaturan
   const settingsForm = document.getElementById('form-settings');
   if (settingsForm) {
     settingsForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+
       // Update API URL di localStorage dahulu jika berubah
       const newApiUrl = document.getElementById('set-api-url').value.trim();
       if (newApiUrl) {
         localStorage.setItem('gas_api_url', newApiUrl);
       }
-      
+
       const settingsObj = {
         namaKegiatan: document.getElementById('set-nama-kegiatan').value.trim(),
         penanggungJawab: document.getElementById('set-penanggung-jawab').value.trim(),
@@ -1724,16 +1734,16 @@ function setupFormSubmitHandlers() {
         folderBuktiId: document.getElementById('set-folder-bukti').value.trim(),
         folderLaporanId: document.getElementById('set-folder-lapor').value.trim()
       };
-      
+
       if (!settingsObj.namaKegiatan || !settingsObj.penanggungJawab || settingsObj.dpAwal <= 0) {
         showToast('Nama kegiatan, penanggung jawab, and nominal DP awal wajib diisi secara valid.', 'error');
         return;
       }
-      
+
       const submitBtn = settingsForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       showGlobalLoading(true);
-      
+
       callApiPost('saveSettings', settingsObj)
         .then((res) => {
           showGlobalLoading(false);
@@ -1755,30 +1765,30 @@ function setupFormSubmitHandlers() {
         });
     });
   }
-  
+
   // 4. Form Verifikasi Kode PDF Dokumen
   const verifyForm = document.getElementById('form-verify-code');
   if (verifyForm) {
     verifyForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      
+
       const code = document.getElementById('verify-input-code').value.trim();
       if (!code) {
         showToast('Masukkan kode verifikasi terlebih dahulu.', 'error');
         return;
       }
-      
+
       const resultBox = document.getElementById('verify-result-box');
       resultBox.style.display = 'none';
       resultBox.classList.add('hidden');
       showGlobalLoading(true);
-      
+
       callApiGet('verifyDocument', { code: code })
         .then((res) => {
           showGlobalLoading(false);
           resultBox.style.display = 'block';
           resultBox.classList.remove('hidden');
-          
+
           if (res.success) {
             resultBox.className = 'status-banner surplus verify-result-box';
             resultBox.innerHTML = `
@@ -1817,7 +1827,7 @@ function downloadBase64File(base64Data, fileName, contentType) {
   }
   const byteArray = new Uint8Array(byteNumbers);
   const blob = new Blob([byteArray], { type: contentType });
-  
+
   const link = document.createElement('a');
   link.href = window.URL.createObjectURL(blob);
   link.download = fileName;
@@ -1830,14 +1840,14 @@ function downloadBase64File(base64Data, fileName, contentType) {
 function generateAdminReportPDF() {
   showGlobalLoading(true);
   showToast('Sedang menyiapkan PDF...', 'success');
-  
+
   callApiGet('generateReport')
     .then((res) => {
       showGlobalLoading(false);
       if (res.success) {
         showToast('Laporan PDF berhasil diunduh.', 'success');
         downloadBase64File(res.base64Data, res.fileName, 'application/pdf');
-        
+
         const container = document.getElementById('report-pdf-link-container');
         if (container) {
           container.innerHTML = `
@@ -1860,9 +1870,9 @@ function generateAdminReportPDF() {
 function downloadSingleTransactionPDF(transactionId) {
   showGlobalLoading(true);
   showToast('Sedang menyiapkan PDF...', 'success');
-  
+
   const pName = state.role === 'peserta' ? state.activeParticipant : '';
-  
+
   callApiGet('generateTransactionPDF', { id: transactionId, name: pName })
     .then((res) => {
       showGlobalLoading(false);
@@ -1879,7 +1889,7 @@ function downloadSingleTransactionPDF(transactionId) {
 function downloadRecapPDF(participantName) {
   showGlobalLoading(true);
   showToast('Sedang menyiapkan PDF...', 'success');
-  
+
   callApiGet('generateParticipantRecapPDF', { name: participantName })
     .then((res) => {
       showGlobalLoading(false);
@@ -1898,26 +1908,26 @@ function downloadRecapPDF(participantName) {
 function handlePortalAccess() {
   const nameSelect = document.getElementById('portal-peserta-select');
   const name = nameSelect.value;
-  
+
   if (!name) {
     showToast('Silakan pilih nama Anda terlebih dahulu.', 'error');
     return;
   }
-  
+
   showGlobalLoading(true);
-  
+
   callApiGet('verifyParticipant', { name: name })
     .then((res) => {
       showGlobalLoading(false);
       if (res.success) {
         state.role = 'peserta';
         state.activeParticipant = res.participant.nama;
-        
+
         const loginScreen = document.getElementById('portal-login-screen');
         const portalLayout = document.getElementById('portal-app-layout');
         const welcomeName = document.getElementById('portal-welcome-name');
         const portalBottomNav = document.getElementById('portal-bottom-nav');
-        
+
         if (loginScreen) {
           loginScreen.style.display = 'none';
           loginScreen.classList.add('hidden');
@@ -1931,7 +1941,7 @@ function handlePortalAccess() {
           portalBottomNav.style.display = 'flex';
           portalBottomNav.classList.remove('hidden');
         }
-        
+
         switchView('portal-dashboard');
         showToast(`Selamat datang di portal, ${res.participant.nama}!`);
       } else {
@@ -1947,22 +1957,22 @@ function handlePortalAccess() {
 function loadPortalDashboard() {
   const welcomeText = document.getElementById('portal-welcome-name');
   if (welcomeText) welcomeText.textContent = state.activeParticipant;
-  
+
   document.getElementById('portal-stats-card').style.opacity = '0.5';
   const listContainer = document.getElementById('portal-expenses-list');
   listContainer.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
-  
+
   callApiGet('getParticipantDashboard', { name: state.activeParticipant })
     .then((data) => {
       document.getElementById('portal-stats-card').style.opacity = '1';
       listContainer.innerHTML = '';
-      
+
       const r = data.recap;
       document.getElementById('portal-stat-total-transaksi').textContent = `${r.transactionCount} kali`;
       document.getElementById('portal-stat-total-disetujui').textContent = formatRupiah(r.totalCost);
       document.getElementById('portal-stat-sudah-diganti').textContent = formatRupiah(r.reimbursed);
       document.getElementById('portal-stat-belum-diganti').textContent = formatRupiah(r.unpaid);
-      
+
       if (data.expenses.length === 0) {
         listContainer.innerHTML = `
           <div class="empty-state">
@@ -1973,7 +1983,7 @@ function loadPortalDashboard() {
         `;
         return;
       }
-      
+
       data.expenses.forEach(e => {
         listContainer.appendChild(createTransactionCard(e));
       });
@@ -1991,11 +2001,11 @@ function downloadMyRecap() {
 function logoutPortal() {
   state.role = 'admin';
   state.activeParticipant = null;
-  
+
   const loginScreen = document.getElementById('portal-login-screen');
   const portalLayout = document.getElementById('portal-app-layout');
   const portalBottomNav = document.getElementById('portal-bottom-nav');
-  
+
   if (loginScreen) {
     loginScreen.style.display = 'flex';
     loginScreen.classList.remove('hidden');
@@ -2008,7 +2018,7 @@ function logoutPortal() {
     portalBottomNav.style.display = 'none';
     portalBottomNav.classList.add('hidden');
   }
-  
+
   switchView('portal-login');
   showToast('Anda telah keluar dari portal.');
 }
@@ -2019,7 +2029,7 @@ function logoutPortal() {
 function exitAdminToPortal() {
   const adminLayout = document.getElementById('admin-app-layout');
   const loginScreen = document.getElementById('portal-login-screen');
-  
+
   if (adminLayout) {
     adminLayout.style.display = 'none';
     adminLayout.classList.add('hidden');
@@ -2028,7 +2038,7 @@ function exitAdminToPortal() {
     loginScreen.style.display = 'flex';
     loginScreen.classList.remove('hidden');
   }
-  
+
   switchView('portal-login');
 }
 
@@ -2046,15 +2056,15 @@ function enterAdminMode() {
 function verifyAdminPin() {
   const pinInput = document.getElementById('admin-pin-input');
   if (!pinInput) return;
-  
+
   const pinVal = pinInput.value;
   if (pinVal === '0708') {
     closeModal('admin-pin-modal');
-    
+
     const loginScreen = document.getElementById('portal-login-screen');
     const portalLayout = document.getElementById('portal-app-layout');
     const adminLayout = document.getElementById('admin-app-layout');
-    
+
     if (loginScreen) {
       loginScreen.style.display = 'none';
       loginScreen.classList.add('hidden');
@@ -2067,10 +2077,10 @@ function verifyAdminPin() {
       adminLayout.style.display = 'block';
       adminLayout.classList.remove('hidden');
     }
-    
+
     state.role = 'admin';
     state.activeParticipant = null;
-    
+
     switchView('dashboard');
     showToast('Akses Administrator Diterima.');
   } else {
@@ -2087,7 +2097,7 @@ function openAddParticipantModal() {
   document.getElementById('part-nohp').value = '';
   document.getElementById('part-ket').value = '';
   document.getElementById('part-status').value = 'Aktif';
-  
+
   document.getElementById('part-modal-title').textContent = 'Tambah Peserta Baru';
   openModal('part-modal');
 }
@@ -2095,13 +2105,13 @@ function openAddParticipantModal() {
 function openEditParticipant(idx) {
   const p = state.participants[idx];
   if (!p) return;
-  
+
   document.getElementById('part-id').value = p.id;
   document.getElementById('part-nama').value = p.nama;
   document.getElementById('part-nohp').value = p.nohp;
   document.getElementById('part-ket').value = p.keterangan;
   document.getElementById('part-status').value = p.status;
-  
+
   document.getElementById('part-modal-title').textContent = 'Edit Data Peserta';
   openModal('part-modal');
 }
@@ -2112,23 +2122,23 @@ function submitParticipant() {
   const nohp = document.getElementById('part-nohp').value.trim();
   const keterangan = document.getElementById('part-ket').value.trim();
   const status = document.getElementById('part-status').value;
-  
+
   if (!nama || !nohp) {
     showToast('Nama dan Nomor HP wajib diisi.', 'error');
     return;
   }
-  
+
   closeModal('part-modal');
   showGlobalLoading(true);
-  
+
   const participantObj = { id, nama, nohp, keterangan, status };
-  
+
   callApiPost('saveParticipant', participantObj)
     .then((res) => {
       showGlobalLoading(false);
       if (res.success) {
         showToast(res.message, 'success');
-        
+
         // Refresh daftar peserta
         callApiGet('getParticipants')
           .then((participants) => {
@@ -2149,12 +2159,12 @@ function submitParticipant() {
 function renderParticipantsAdminList() {
   const container = document.getElementById('part-list-container');
   container.innerHTML = '';
-  
+
   if (state.participants.length === 0) {
     container.innerHTML = '<div class="empty-state"><h3>Belum ada peserta</h3></div>';
     return;
   }
-  
+
   state.participants.forEach((p, idx) => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -2163,7 +2173,7 @@ function renderParticipantsAdminList() {
     card.style.display = 'flex';
     card.style.justifyContent = 'space-between';
     card.style.alignItems = 'center';
-    
+
     card.innerHTML = `
       <div>
         <strong style="color:var(--primary); font-size:14px;">${p.nama}</strong>
@@ -2175,11 +2185,11 @@ function renderParticipantsAdminList() {
         <button class="btn btn-secondary" style="height:32px; padding:0 8px; font-size:11px;" data-edit-index="${idx}">Edit</button>
       </div>
     `;
-    
+
     card.querySelector('[data-edit-index]').addEventListener('click', () => {
       openEditParticipant(idx);
     });
-    
+
     container.appendChild(card);
   });
 }
