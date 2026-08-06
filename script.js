@@ -298,6 +298,17 @@ function setupEventBindings() {
   bindElClick('btn-submit-reject', submitRejection);
   bindElClick('btn-submit-payment', submitPayment);
   bindElClick('btn-submit-participant', submitParticipant);
+  bindElClick('btn-submit-admin-pin', verifyAdminPin);
+
+  // 12. Admin PIN input enter key listener
+  const pinInput = document.getElementById('admin-pin-input');
+  if (pinInput) {
+    pinInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        verifyAdminPin();
+      }
+    });
+  }
 
   // 11. Event Delegator untuk Dismiss Modal & Bottom Sheet
   document.addEventListener('click', (e) => {
@@ -1914,7 +1925,6 @@ function loadPortalDashboard() {
       
       const r = data.recap;
       document.getElementById('portal-stat-total-transaksi').textContent = `${r.transactionCount} kali`;
-      document.getElementById('portal-stat-total-biaya').textContent = formatRupiah(r.totalCost);
       document.getElementById('portal-stat-total-disetujui').textContent = formatRupiah(r.totalCost);
       document.getElementById('portal-stat-sudah-diganti').textContent = formatRupiah(r.reimbursed);
       document.getElementById('portal-stat-belum-diganti').textContent = formatRupiah(r.unpaid);
@@ -1989,27 +1999,49 @@ function exitAdminToPortal() {
 }
 
 function enterAdminMode() {
-  const loginScreen = document.getElementById('portal-login-screen');
-  const portalLayout = document.getElementById('portal-app-layout');
-  const adminLayout = document.getElementById('admin-app-layout');
-  
-  if (loginScreen) {
-    loginScreen.style.display = 'none';
-    loginScreen.classList.add('hidden');
+  const pinInput = document.getElementById('admin-pin-input');
+  if (pinInput) {
+    pinInput.value = '';
   }
-  if (portalLayout) {
-    portalLayout.style.display = 'none';
-    portalLayout.classList.add('hidden');
-  }
-  if (adminLayout) {
-    adminLayout.style.display = 'block';
-    adminLayout.classList.remove('hidden');
-  }
+  openModal('admin-pin-modal');
+  setTimeout(() => {
+    if (pinInput) pinInput.focus();
+  }, 100);
+}
+
+function verifyAdminPin() {
+  const pinInput = document.getElementById('admin-pin-input');
+  if (!pinInput) return;
   
-  state.role = 'admin';
-  state.activeParticipant = null;
-  
-  switchView('dashboard');
+  const pinVal = pinInput.value;
+  if (pinVal === '0708') {
+    closeModal('admin-pin-modal');
+    
+    const loginScreen = document.getElementById('portal-login-screen');
+    const portalLayout = document.getElementById('portal-app-layout');
+    const adminLayout = document.getElementById('admin-app-layout');
+    
+    if (loginScreen) {
+      loginScreen.style.display = 'none';
+      loginScreen.classList.add('hidden');
+    }
+    if (portalLayout) {
+      portalLayout.style.display = 'none';
+      portalLayout.classList.add('hidden');
+    }
+    if (adminLayout) {
+      adminLayout.style.display = 'block';
+      adminLayout.classList.remove('hidden');
+    }
+    
+    state.role = 'admin';
+    state.activeParticipant = null;
+    
+    switchView('dashboard');
+    showToast('Akses Administrator Diterima.');
+  } else {
+    showToast('PIN Administrator salah! Akses ditolak.', 'error');
+  }
 }
 
 /**
