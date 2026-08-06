@@ -370,6 +370,22 @@ function switchView(viewName) {
           portalContainer.appendChild(viewAdd);
         }
       }
+
+      // Auto-set tanggal hari ini jika kosong (memudahkan input di mobile)
+      const expDateInput = document.getElementById('exp-tanggal');
+      if (expDateInput && !expDateInput.value) {
+        expDateInput.value = new Date().toISOString().split('T')[0];
+      }
+
+      // Tampilkan/Sembunyikan dropdown Peserta berdasarkan role login
+      const expPesertaGroup = document.getElementById('form-group-exp-peserta');
+      const expPesertaSelect = document.getElementById('exp-peserta');
+      if (state.role === 'peserta') {
+        if (expPesertaGroup) expPesertaGroup.classList.add('hidden');
+        if (expPesertaSelect) expPesertaSelect.value = state.activeParticipant;
+      } else {
+        if (expPesertaGroup) expPesertaGroup.classList.remove('hidden');
+      }
     }
   }
 
